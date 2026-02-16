@@ -13,6 +13,7 @@ export default defineConfig({
           __dirname,
           "src/galaxy generator/index.html",
         ),
+        raycaster: path.resolve(__dirname, "src/raycaster/index.html"),
       },
     },
   },
