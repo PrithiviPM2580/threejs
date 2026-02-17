@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import vertexShader from "./shader/vertex.glsl";
 import fragmentShader from "./shader/fragment.glsl";
+import GUI from "lil-gui";
 import "./style.css";
 
 // Scene setup
@@ -32,15 +33,29 @@ controls.dampingFactor = 0.05;
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
 scene.add(ambientLight);
 
-const gemotry = new THREE.PlaneGeometry(4, 4);
-const material = new THREE.RawShaderMaterial({
+const gemotry = new THREE.PlaneGeometry(4, 4, 32, 32);
+
+const uniforms = {
+  uFrequency: { value: 2.78 },
+  uTime: { value: 0.0 },
+  uAmplitude: { value: 0.5 },
+};
+
+const material = new THREE.ShaderMaterial({
   vertexShader: vertexShader,
   fragmentShader: fragmentShader,
   side: THREE.DoubleSide,
+  uniforms: uniforms,
+  // wireframe: true,
 });
 
-const cube = new THREE.Mesh(gemotry, material);
-scene.add(cube);
+// GUI setup
+const gui = new GUI();
+gui.add(uniforms.uFrequency, "value").min(-10).max(10).name("frequency");
+gui.add(uniforms.uAmplitude, "value").min(0).max(1).name("amplitude");
+
+const plane = new THREE.Mesh(gemotry, material);
+scene.add(plane);
 
 // Handle window resize
 window.addEventListener("resize", () => {
@@ -49,9 +64,13 @@ window.addEventListener("resize", () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
+const clock = new THREE.Clock();
 // Animation loop
 function animate() {
   requestAnimationFrame(animate);
+
+  const elapsedTime = clock.getElapsedTime();
+  uniforms.uTime.value = elapsedTime;
 
   controls.update();
   renderer.render(scene, camera);
