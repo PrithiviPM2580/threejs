@@ -17,6 +17,9 @@ importers:
       tweakpane:
         specifier: ^4.0.5
         version: 4.0.5
+      vite-plugin-glsl:
+        specifier: ^1.5.5
+        version: 1.5.5(esbuild@0.27.3)(vite@7.3.1)
     devDependencies:
       vite:
         specifier: ^7.3.1
@@ -378,6 +381,19 @@ packages:
   tweakpane@4.0.5:
     resolution: {integrity: sha512-rxEXdSI+ArlG1RyO6FghC4ZUX8JkEfz8F3v1JuteXSV0pEtHJzyo07fcDG+NsJfN5L39kSbCYbB9cBGHyuI/tQ==}
 
+  vite-plugin-glsl@1.5.5:
+    resolution: {integrity: sha512-6NM2P4JkM+1hNSqMhM4eagX03bmhEoTyrOrk68y3Q6KXfdF73QIuCb6BmRZvwLPgXTCOBM3Zc8gL1WxctYnrUQ==}
+    engines: {node: '>= 20.17.0', npm: '>= 10.8.3'}
+    peerDependencies:
+      '@rollup/pluginutils': ^5.x
+      esbuild: '>= 0.25'
+      vite: '>= 3.x'
+    peerDependenciesMeta:
+      '@rollup/pluginutils':
+        optional: true
+      esbuild:
+        optional: true
+
   vite@7.3.1:
     resolution: {integrity: sha512-w+N7Hifpc3gRjZ63vYBXA56dvvRlNWRczTdmCBBa+CotUzAPf5b7YMdMR/8CQoeYE5LX3W4wj6RYTgonm1b9DA==}
     engines: {node: ^20.19.0 || >=22.12.0}
@@ -666,6 +682,12 @@ snapshots:
       picomatch: 4.0.3
 
   tweakpane@4.0.5: {}
+
+  vite-plugin-glsl@1.5.5(esbuild@0.27.3)(vite@7.3.1):
+    dependencies:
+      vite: 7.3.1
+    optionalDependencies:
+      esbuild: 0.27.3
 
   vite@7.3.1:
     dependencies:
