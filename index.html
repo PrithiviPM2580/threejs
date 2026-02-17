@@ -14,22 +14,46 @@
         font-family: Arial, sans-serif;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        padding: 2rem 1rem;
       }
       .container {
+        max-width: 1400px;
+        margin: 0 auto;
         text-align: center;
       }
       h1 {
         color: white;
         margin-bottom: 3rem;
-        font-size: 3rem;
+        font-size: clamp(2rem, 5vw, 3rem);
       }
       .projects {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 2rem;
+        padding: 0 1rem;
+      }
+
+      @media (max-width: 768px) {
+        .projects {
+          grid-template-columns: 1fr;
+          gap: 1.5rem;
+        }
+        h1 {
+          margin-bottom: 2rem;
+        }
+      }
+
+      @media (min-width: 769px) and (max-width: 1024px) {
+        .projects {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      @media (min-width: 1025px) {
+        .projects {
+          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+          gap: 2.5rem;
+        }
       }
       .project-card {
         background: white;
@@ -81,6 +105,11 @@
           <h2>Raw Shader</h2>
           <p>Custom shaders in Three.js</p>
           <a href="/src/raw-shader/index.html">Open Project</a>
+        </div>
+        <div class="project-card">
+          <h2>Shader Pattern</h2>
+          <p>Custom shader patterns in Three.js</p>
+          <a href="/src/shader-pattern/index.html">Open Project</a>
         </div>
       </div>
     </div>

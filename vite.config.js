@@ -22,6 +22,10 @@ export default defineConfig({
         ),
         raycaster: path.resolve(__dirname, "src/raycaster/index.html"),
         "raw-shader": path.resolve(__dirname, "src/raw-shader/index.html"),
+        "shader-pattern": path.resolve(
+          __dirname,
+          "src/shader-pattern/index.html",
+        ),
       },
     },
   },

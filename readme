@@ -1,0 +1,6 @@
+| Operator | Visual Logic            |
+| -------- | ----------------------- |
+| `*`      | AND → intersection only |
+| `+`      | OR → combine everything |
+| `-`      | subtraction → cut holes |
+| `/`      | shrink values           |
