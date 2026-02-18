@@ -2,23 +2,25 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import GUI from "lil-gui";
 import "./style.css";
+import vertexShader from "./shader/vertex.glsl";
+import fragmentShader from "./shader/fragment.glsl";
 
 const parameters = {};
-parameters.count = 1000;
+parameters.count = 50000;
 parameters.size = 0.02;
-parameters.radius = 5;
+parameters.radius = 4;
 parameters.branches = 3;
-parameters.spin = 1;
+parameters.spin = 0;
 parameters.randomness = 0.2;
 parameters.randomnessPower = 3;
-parameters.insideColor = "#ff5588";
+parameters.insideColor = "#ff6030";
 parameters.outsideColor = "#1b3984";
 
 const gui = new GUI();
 gui
   .add(parameters, "count")
   .min(100)
-  .max(50000)
+  .max(200000)
   .step(100)
   .onFinishChange(generateGalaxy);
 gui
@@ -59,6 +61,8 @@ gui
   .max(10)
   .step(0.1)
   .onFinishChange(generateGalaxy);
+
+gui.add(parameters, "");
 
 gui.addColor(parameters, "insideColor").onFinishChange(generateGalaxy);
 gui.addColor(parameters, "outsideColor").onFinishChange(generateGalaxy);
@@ -105,6 +109,7 @@ function generateGalaxy() {
 
   const positions = new Float32Array(parameters.count * 3);
   const colors = new Float32Array(parameters.count * 3);
+  const scales = new Float32Array(parameters.count);
 
   const insideColor = new THREE.Color(parameters.insideColor);
   const outsideColor = new THREE.Color(parameters.outsideColor);
@@ -139,20 +144,28 @@ function generateGalaxy() {
     colors[i3] = mixedColor.r;
     colors[i3 + 1] = mixedColor.g;
     colors[i3 + 2] = mixedColor.b;
+
+    scales[i] = Math.random();
   }
 
   geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
   geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+  geometry.setAttribute("aScale", new THREE.BufferAttribute(scales, 1));
 
-  material = new THREE.PointsMaterial({
-    size: parameters.size,
-    sizeAttenuation: true,
+  material = new THREE.ShaderMaterial({
+    vertexShader: vertexShader,
+    fragmentShader: fragmentShader,
     depthWrite: false,
     blending: THREE.AdditiveBlending,
     vertexColors: true,
+    uniforms: {
+      uSize: { value: 2.0 * renderer.getPixelRatio() },
+      uTime: { value: 0 },
+    },
   });
 
   points = new THREE.Points(geometry, material);
+  points.rotation.x = Math.PI * 0.25;
   scene.add(points);
 }
 
@@ -165,9 +178,14 @@ window.addEventListener("resize", () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
+const clock = new THREE.Clock();
+
 // Animation loop
 function animate() {
   requestAnimationFrame(animate);
+
+  const elapsedTime = clock.getElapsedTime();
+  material.uniforms.uTime.value = elapsedTime;
 
   controls.update();
   renderer.render(scene, camera);
