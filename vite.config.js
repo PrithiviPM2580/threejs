@@ -27,6 +27,7 @@ export default defineConfig({
           "src/shader-pattern/index.html",
         ),
         "ragging-sea": path.resolve(__dirname, "src/ragging-sea/index.html"),
+        hologram: path.resolve(__dirname, "src/hologram/index.html"),
       },
     },
   },
