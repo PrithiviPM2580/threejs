@@ -16,7 +16,7 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000,
 );
-camera.position.z = 8;
+camera.position.z = 2.4;
 
 // Renderer setup
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -33,10 +33,21 @@ controls.dampingFactor = 0.05;
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
 scene.add(ambientLight);
 
-const gemotry = new THREE.PlaneGeometry(4, 4, 32, 32);
+const gemotry = new THREE.PlaneGeometry(2, 2, 512, 512);
 
 const uniforms = {
-  radius: { value: 0.0 },
+  uTime: { value: 0 },
+  uBigWavesElevation: { value: 0.2 },
+  uBigWaveFrequency: { value: new THREE.Vector2(4, 1.5) },
+  uBigWaveSpeed: { value: 0.75 },
+  uDepthColor: { value: new THREE.Color("#186691") },
+  uSurfaceColor: { value: new THREE.Color("#9bd8ff") },
+  uColorOffset: { value: 0.08 },
+  uColorMultiplier: { value: 5 },
+  uSmallWavesElevation: { value: 0.15 },
+  uSmallWavesFrequency: { value: 3.0 },
+  uSmallWavesSpeed: { value: 0.2 },
+  uSmallWavesIterations: { value: 4.0 },
 };
 
 const material = new THREE.ShaderMaterial({
@@ -49,9 +60,93 @@ const material = new THREE.ShaderMaterial({
 
 // GUI setup
 const gui = new GUI();
-gui.add(uniforms.radius, "value").min(-1).max(1).step(0.01).name("Radius");
+gui
+  .add(uniforms.uBigWavesElevation, "value")
+  .min(0)
+  .max(1)
+  .step(0.01)
+  .name("Big Waves Elevation");
+
+gui
+  .add(uniforms.uBigWaveFrequency.value, "x")
+  .min(0)
+  .max(10)
+  .step(0.1)
+  .name("Big Waves Frequency X");
+
+gui
+  .add(uniforms.uBigWaveFrequency.value, "y")
+  .min(0)
+  .max(10)
+  .step(0.1)
+  .name("Big Waves Frequency Y");
+
+gui
+  .add(uniforms.uBigWaveSpeed, "value")
+  .min(0)
+  .max(5)
+  .step(0.01)
+  .name("Big Waves Speed");
+
+gui
+  .add(uniforms.uColorOffset, "value")
+  .min(0)
+  .max(1)
+  .step(0.01)
+  .name("Color Offset");
+
+gui
+  .add(uniforms.uColorMultiplier, "value")
+  .min(0)
+  .max(10)
+  .step(0.1)
+  .name("Color Multiplier");
+
+gui
+  .add(uniforms.uSmallWavesElevation, "value")
+  .min(0)
+  .max(1)
+  .step(0.01)
+  .name("Small Waves Elevation");
+
+gui
+  .add(uniforms.uSmallWavesFrequency, "value")
+  .min(0)
+  .max(10)
+  .step(0.1)
+  .name("Small Waves Frequency");
+
+gui
+  .add(uniforms.uSmallWavesSpeed, "value")
+  .min(0)
+  .max(5)
+  .step(0.01)
+  .name("Small Waves Speed");
+
+gui
+  .add(uniforms.uSmallWavesIterations, "value")
+  .min(1)
+  .max(10)
+  .step(1)
+  .name("Small Waves Iterations");
+
+gui
+  .addColor({ depthColor: "#0000ff" }, "depthColor")
+  .onChange((value) => {
+    uniforms.uDepthColor.value.set(value);
+  })
+  .name("Depth Color");
+
+gui
+  .addColor({ surfaceColor: "#8888ff" }, "surfaceColor")
+  .onChange((value) => {
+    uniforms.uSurfaceColor.value.set(value);
+  })
+  .name("Surface Color");
 
 const plane = new THREE.Mesh(gemotry, material);
+plane.rotation.x = -Math.PI * 0.3;
+plane.rotation.z = -Math.PI * 0.2;
 scene.add(plane);
 
 // Handle window resize
@@ -67,7 +162,7 @@ function animate() {
   requestAnimationFrame(animate);
 
   const elapsedTime = clock.getElapsedTime();
-
+  uniforms.uTime.value = elapsedTime;
   controls.update();
   renderer.render(scene, camera);
 }
