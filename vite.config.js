@@ -26,6 +26,7 @@ export default defineConfig({
           __dirname,
           "src/shader-pattern/index.html",
         ),
+        "ragging-sea": path.resolve(__dirname, "src/ragging-sea/index.html"),
       },
     },
   },
