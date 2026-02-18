@@ -33,26 +33,43 @@ controls.dampingFactor = 0.05;
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
 scene.add(ambientLight);
 
-const gemotry = new THREE.PlaneGeometry(4, 4, 32, 32);
+const parameters = {};
+parameters.color = "#ff0000";
 
-const uniforms = {
-  radius: { value: 0.0 },
-};
-
-const material = new THREE.ShaderMaterial({
-  vertexShader: vertexShader,
-  fragmentShader: fragmentShader,
-  side: THREE.DoubleSide,
-  uniforms: uniforms,
-  // wireframe: true,
+const gui = new GUI();
+gui.addColor(parameters, "color").onChange(() => {
+  material.uniforms.uColor.value.set(parameters.color);
 });
 
-// GUI setup
-const gui = new GUI();
-gui.add(uniforms.radius, "value").min(-1).max(1).step(0.01).name("Radius");
+// Geometry and Material
+const material = new THREE.ShaderMaterial({
+  vertexShader,
+  fragmentShader,
+  uniforms: {
+    uTime: new THREE.Uniform(0),
+    uColor: new THREE.Uniform(new THREE.Color(parameters.color)),
+  },
+  transparent: true,
+  side: THREE.DoubleSide,
+  depthWrite: false,
+  blending: THREE.AdditiveBlending,
+});
 
-const plane = new THREE.Mesh(gemotry, material);
-scene.add(plane);
+const sphereGeometry = new THREE.SphereGeometry(1, 64, 64);
+const torusKnotGeometry = new THREE.TorusKnotGeometry(0.6, 0.2, 200, 32);
+const octahedronGeometry = new THREE.OctahedronGeometry(1);
+
+const leftMesh = new THREE.Mesh(torusKnotGeometry, material);
+leftMesh.position.set(-2.8, 0, 0);
+scene.add(leftMesh);
+
+const centerMesh = new THREE.Mesh(sphereGeometry, material);
+centerMesh.position.set(0, 0, 0);
+scene.add(centerMesh);
+
+const rightMesh = new THREE.Mesh(octahedronGeometry, material);
+rightMesh.position.set(2.8, 0, 0);
+scene.add(rightMesh);
 
 // Handle window resize
 window.addEventListener("resize", () => {
@@ -67,6 +84,8 @@ function animate() {
   requestAnimationFrame(animate);
 
   const elapsedTime = clock.getElapsedTime();
+
+  material.uniforms.uTime.value = elapsedTime;
 
   controls.update();
   renderer.render(scene, camera);
