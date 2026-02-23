@@ -28,6 +28,7 @@ export default defineConfig({
         ),
         "ragging-sea": path.resolve(__dirname, "src/ragging-sea/index.html"),
         hologram: path.resolve(__dirname, "src/hologram/index.html"),
+        cofee: path.resolve(__dirname, "src/coffee/index.html"),
       },
     },
   },
