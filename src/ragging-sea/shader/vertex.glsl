@@ -1,5 +1,4 @@
 
-varying vec2 vUv;
 uniform float uBigWavesElevation;
 uniform vec2 uBigWaveFrequency;
 uniform float uTime;
@@ -9,6 +8,8 @@ uniform float uSmallWavesFrequency;
 uniform float uSmallWavesSpeed;
 uniform float uSmallWavesIterations;
 varying float vElevation;
+varying vec3 vNormal;
+varying vec3 vPosition;
 
 vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x, 289.0);}
 vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314 * r;}
@@ -82,20 +83,40 @@ float cnoise(vec3 P){
   return 2.2 * n_xyz;
 }
 
-void main() {
-   vec4 modelPosition= modelMatrix * vec4(position, 1.0);
-   float elevation= sin(modelPosition.x * uBigWaveFrequency.x + uTime * uBigWaveSpeed) * 
-                    sin(modelPosition.z * uBigWaveFrequency.y + uTime * uBigWaveSpeed) *
+float waveElevation(vec3 position){
+  float elevation= sin(position.x * uBigWaveFrequency.x + uTime * uBigWaveSpeed) * 
+                    sin(position.z * uBigWaveFrequency.y + uTime * uBigWaveSpeed) *
                     uBigWavesElevation;
    
    for(float i=1.0;i<=uSmallWavesIterations;i++){
-     elevation -= abs(cnoise(vec3(modelPosition.xz * 3.0 * i,uTime * uSmallWavesSpeed)) * uSmallWavesElevation / i);
+     elevation -= abs(cnoise(vec3(position.xz * 3.0 * i,uTime * uSmallWavesSpeed)) * uSmallWavesElevation / i);
    }
-   modelPosition.y += elevation;
-   vec4 viewPosition = viewMatrix * modelPosition;
-   vec4 projectedPosition = projectionMatrix * viewPosition;
-   gl_Position = projectedPosition;
-   vUv = uv;
-   vElevation = elevation;
- 
+
+   return elevation;
+}
+
+void main() {
+
+
+  float shift=0.01;
+  vec4 modelPosition= modelMatrix * vec4(position, 1.0);
+  vec3 modelPositionA= modelPosition.xyz + vec3(shift,0.0,0.0);
+  vec3 modelPositionB= modelPosition.xyz + vec3(0.0,0.0,-shift);
+
+
+  float elevation= waveElevation(modelPosition.xyz);
+  modelPosition.y += elevation;
+  modelPositionA.y += waveElevation(modelPositionA);
+  modelPositionB.y += waveElevation(modelPositionB);
+
+  //Compute normal
+  vec3 toA= normalize(modelPositionA - modelPosition.xyz);
+  vec3 toB= normalize(modelPositionB - modelPosition.xyz);
+  vec3 computeNormal= cross(toA, toB);
+  vec4 viewPosition = viewMatrix * modelPosition;
+  vec4 projectedPosition = projectionMatrix * viewPosition;
+  gl_Position = projectedPosition;
+  vElevation = elevation;
+  vPosition= modelPosition.xyz;
+  vNormal= computeNormal;   
 }

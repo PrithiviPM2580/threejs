@@ -9,6 +9,11 @@ import "./style.css";
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x111827);
 
+//Axis Helper
+const axesHelper = new THREE.AxesHelper();
+axesHelper.position.y += 0.25;
+scene.add(axesHelper);
+
 // Camera setup
 const camera = new THREE.PerspectiveCamera(
   75,
@@ -22,6 +27,7 @@ camera.position.z = 2.4;
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
 document.body.appendChild(renderer.domElement);
 
 // Orbit Controls
@@ -34,16 +40,18 @@ const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
 scene.add(ambientLight);
 
 const gemotry = new THREE.PlaneGeometry(2, 2, 512, 512);
+gemotry.deleteAttribute("uv");
+gemotry.deleteAttribute("normal");
 
 const uniforms = {
   uTime: { value: 0 },
   uBigWavesElevation: { value: 0.2 },
   uBigWaveFrequency: { value: new THREE.Vector2(4, 1.5) },
   uBigWaveSpeed: { value: 0.75 },
-  uDepthColor: { value: new THREE.Color("#186691") },
-  uSurfaceColor: { value: new THREE.Color("#9bd8ff") },
-  uColorOffset: { value: 0.08 },
-  uColorMultiplier: { value: 5 },
+  uDepthColor: { value: new THREE.Color("#ff4000") },
+  uSurfaceColor: { value: new THREE.Color("#151c37") },
+  uColorOffset: { value: 0.925 },
+  uColorMultiplier: { value: 1 },
   uSmallWavesElevation: { value: 0.15 },
   uSmallWavesFrequency: { value: 3.0 },
   uSmallWavesSpeed: { value: 0.2 },
