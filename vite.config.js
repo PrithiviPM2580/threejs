@@ -30,6 +30,10 @@ export default defineConfig({
         hologram: path.resolve(__dirname, "src/hologram/index.html"),
         coffee: path.resolve(__dirname, "src/coffee/index.html"),
         firework: path.resolve(__dirname, "src/firework/index.html"),
+        "light-shading": path.resolve(
+          __dirname,
+          "src/light shading/index.html",
+        ),
       },
     },
   },
