@@ -9,6 +9,9 @@ import "./style.css";
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x111827);
 
+// GUI setup
+const gui = new GUI();
+
 // Camera setup
 const camera = new THREE.PerspectiveCamera(
   75,
@@ -33,26 +36,45 @@ controls.dampingFactor = 0.05;
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
 scene.add(ambientLight);
 
-const gemotry = new THREE.PlaneGeometry(4, 4, 32, 32);
-
-const uniforms = {
-  radius: { value: 0.0 },
+const lightGUI = {
+  color: new THREE.Color(0xffffff),
 };
 
+gui
+  .addColor(lightGUI, "color")
+  .name("Light Color")
+  .onChange((value) => {
+    material.uniforms.uColor.value.set(value);
+  });
+
 const material = new THREE.ShaderMaterial({
-  vertexShader: vertexShader,
-  fragmentShader: fragmentShader,
-  side: THREE.DoubleSide,
-  uniforms: uniforms,
-  // wireframe: true,
+  vertexShader,
+  fragmentShader,
+  uniforms: {
+    uColor: new THREE.Uniform(lightGUI.color),
+  },
 });
 
-// GUI setup
-const gui = new GUI();
-gui.add(uniforms.radius, "value").min(-1).max(1).step(0.01).name("Radius");
+const object1 = new THREE.Mesh(
+  new THREE.CapsuleGeometry(1, 1, 4, 8, 1),
+  material,
+);
+object1.position.x = -3.5;
 
-const plane = new THREE.Mesh(gemotry, material);
-scene.add(plane);
+const object2 = new THREE.Mesh(new THREE.DodecahedronGeometry(1.4), material);
+
+const object3 = new THREE.Mesh(new THREE.TorusKnotGeometry(), material);
+object3.position.x = 3.5;
+
+const directionalLightHelper = new THREE.Mesh(
+  new THREE.PlaneGeometry(),
+  new THREE.MeshBasicMaterial(),
+);
+directionalLightHelper.material.color.setRGB(0.1, 0.1, 1.0);
+directionalLightHelper.material.side = THREE.DoubleSide;
+directionalLightHelper.position.set(0, 0, 3);
+
+scene.add(object1, object2, object3, directionalLightHelper);
 
 // Handle window resize
 window.addEventListener("resize", () => {
