@@ -34,6 +34,10 @@ export default defineConfig({
           __dirname,
           "src/light shading/index.html",
         ),
+        "halftone-shading": path.resolve(
+          __dirname,
+          "src/halftone  shading/index.html",
+        ),
       },
     },
   },
