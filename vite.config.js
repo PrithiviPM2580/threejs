@@ -43,6 +43,10 @@ export default defineConfig({
           __dirname,
           "src/cursor particle/index.html",
         ),
+        "particle-morphing": path.resolve(
+          __dirname,
+          "src/particle morphing/index.html",
+        ),
       },
     },
   },
