@@ -39,6 +39,10 @@ export default defineConfig({
           "src/halftone  shading/index.html",
         ),
         earth: path.resolve(__dirname, "src/earth/index.html"),
+        "cursor-particle": path.resolve(
+          __dirname,
+          "src/cursor particle/index.html",
+        ),
       },
     },
   },
