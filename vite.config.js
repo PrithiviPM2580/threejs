@@ -38,6 +38,7 @@ export default defineConfig({
           __dirname,
           "src/halftone  shading/index.html",
         ),
+        earth: path.resolve(__dirname, "src/earth/index.html"),
       },
     },
   },
