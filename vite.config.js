@@ -48,6 +48,7 @@ export default defineConfig({
           "src/particle morphing/index.html",
         ),
         "gpgpu-field": path.resolve(__dirname, "src/gpgpu field/index.html"),
+        particles: path.resolve(__dirname, "src/particles/index.html"),
       },
     },
   },
