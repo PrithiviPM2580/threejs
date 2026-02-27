@@ -1,14 +1,17 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import GUI from "lil-gui";
+import { GLTFLoader } from "three/examples/jsm/Addons.js";
 import "./style.css";
+import fragmentShader from "./shader/fragment.glsl";
+import vertexShader from "./shader/vertex.glsl";
 
 // GUI setup
 const gui = new GUI();
 
 // Scene setup
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x111827);
+scene.background = new THREE.Color(0xffffff);
 
 const sizes = {
   width: window.innerWidth,
@@ -18,12 +21,12 @@ const sizes = {
 
 // Camera setup
 const camera = new THREE.PerspectiveCamera(
-  75,
+  70,
   sizes.width / sizes.height,
   0.1,
   1000,
 );
-camera.position.z = 15;
+camera.position.z = 6;
 
 // Renderer setup
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -40,17 +43,38 @@ controls.dampingFactor = 0.05;
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
 scene.add(ambientLight);
 
-//Gemometry and Material
-const orbiter = new THREE.Mesh(
-  new THREE.SphereGeometry(0.5, 16, 16),
-  new THREE.MeshStandardMaterial({ color: 0x00ffff }),
-);
-scene.add(orbiter);
+//Material
+const material = new THREE.ShaderMaterial({
+  vertexShader,
+  fragmentShader,
+  uniforms: {
+    uSize: new THREE.Uniform(10.0),
+    uResolution: new THREE.Uniform(
+      new THREE.Vector2(
+        sizes.width * sizes.pixelRation,
+        sizes.height * sizes.pixelRation,
+      ),
+    ),
+  },
+});
 
-// Place orbiter 5 units away from center
-orbiter.position.set(5, 0, 0);
+//GLTF Loader
+const gltfLoader = new GLTFLoader();
+gltfLoader.load("/models/beyonce/beyonce.glb", (gltf) => {
+  scene.add(gltf.scene);
 
-const center = new THREE.Vector3(0, 0, 0); // orbit center
+  const geometry = new THREE.BufferGeometry();
+  const positionArray =
+    gltf.scene.children[0].geometry.attributes.position.array;
+
+  geometry.setAttribute(
+    "position",
+    new THREE.BufferAttribute(positionArray, 3),
+  );
+
+  const points = new THREE.Points(geometry, material);
+  scene.add(points);
+});
 
 // Handle window resize
 window.addEventListener("resize", () => {
@@ -69,17 +93,7 @@ function animate() {
   requestAnimationFrame(animate);
 
   const elapsedTime = clock.getElapsedTime();
-  // Vector from center to orbiter
-  const radiusVec = orbiter.position.clone().sub(center);
 
-  // Up vector for rotation axis
-  const up = new THREE.Vector3(0, 1, 0);
-
-  // Compute perpendicular direction using cross product
-  const tangent = up.clone().cross(radiusVec).normalize();
-
-  // Move orbiter along tangent
-  orbiter.position.add(tangent.multiplyScalar(0.05));
   controls.update();
   renderer.render(scene, camera);
 }
