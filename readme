@@ -6,3 +6,8 @@
 | `/`      | shrink values           |
 
 
+use the glb of beyonce and use gltf loader for it
+make a buffergeometry inside the gltf function witht he position array of the scene gemoetry position array with the buffer atttribute of 3 
+make the mesh with the points and geomtry with the buffer geometry and shader material
+initilize raycaster, mouse and setFromCamera and intersectObjects to the scene children
+make a mousemove event function and make it goes from -1 to 1

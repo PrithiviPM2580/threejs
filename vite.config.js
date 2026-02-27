@@ -49,6 +49,10 @@ export default defineConfig({
         ),
         "gpgpu-field": path.resolve(__dirname, "src/gpgpu field/index.html"),
         particles: path.resolve(__dirname, "src/particles/index.html"),
+        "beyonce particle": path.resolve(
+          __dirname,
+          "src/beyonce particle/index.html",
+        ),
       },
     },
   },
