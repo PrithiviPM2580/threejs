@@ -26,7 +26,7 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000,
 );
-camera.position.z = 6;
+camera.position.z = 200;
 
 // Renderer setup
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -43,6 +43,14 @@ controls.dampingFactor = 0.05;
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
 scene.add(ambientLight);
 
+//Geometry
+const planeGeometry = new THREE.PlaneGeometry(100, 100, 1, 1);
+
+const planeMaterial = new THREE.MeshBasicMaterial({
+  color: 0x000000,
+  side: THREE.DoubleSide,
+});
+
 //Material
 const material = new THREE.ShaderMaterial({
   vertexShader,
@@ -57,6 +65,9 @@ const material = new THREE.ShaderMaterial({
     ),
   },
 });
+
+const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+scene.add(plane);
 
 //GLTF Loader
 const gltfLoader = new GLTFLoader();
@@ -76,6 +87,15 @@ gltfLoader.load("/models/beyonce/beyonce.glb", (gltf) => {
   scene.add(points);
 });
 
+//Raycaster and mouse setup
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+window.addEventListener("mousemove", (e) => {
+  mouse.x = (e.clientX / sizes.width) * 2 - 1;
+  mouse.y = -(e.clientY / sizes.height) * 2 + 1;
+});
+
 // Handle window resize
 window.addEventListener("resize", () => {
   sizes.width = window.innerWidth;
@@ -93,6 +113,13 @@ function animate() {
   requestAnimationFrame(animate);
 
   const elapsedTime = clock.getElapsedTime();
+
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects([plane]);
+
+  if (intersects.length > 0) {
+    console.log("Mouse is intersecting with the plane");
+  }
 
   controls.update();
   renderer.render(scene, camera);
