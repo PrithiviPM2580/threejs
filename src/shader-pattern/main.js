@@ -7,7 +7,14 @@ import "./style.css";
 
 // Scene setup
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x111827);
+scene.background = new THREE.Color("#E2E2E2");
+
+// const gui = new GUI();
+
+// const parameters = {
+//   offset: 0,
+//   color: "#000000",
+// };
 
 //Axis Helper
 // const axesHelper = new THREE.AxesHelper();
@@ -66,8 +73,9 @@ const material = new THREE.ShaderMaterial({
     uResolution: new THREE.Uniform(
       new THREE.Vector2(window.innerWidth, window.innerHeight),
     ),
-    uOffet: new THREE.Uniform(new THREE.Vector2(0, 0)),
+    uOffset: new THREE.Uniform(0),
     uTime: new THREE.Uniform(0),
+    uColor: new THREE.Uniform(new THREE.Color("#000000")),
   },
 });
 
@@ -105,14 +113,29 @@ for (let i = 0; i < number; i++) {
     params.closed,
   );
 
+  let tubeGeometry1 = new THREE.TubeGeometry(
+    sampleClosedSpline,
+    params.extrusionSegments,
+    3,
+    params.radiusSegments,
+    params.closed,
+  );
+
   let m = material.clone();
+  let m1 = material.clone();
 
   let mesh = new THREE.Mesh(tubeGeometry, m);
+  let mesh1 = new THREE.Mesh(tubeGeometry1, m1);
+  m.uniforms.uColor.value = new THREE.Color("#ffffff");
+  m1.side = THREE.BackSide;
   mesh.scale.set(0.01, 0.01, 0.01);
+  mesh1.scale.set(0.01, 0.01, 0.01);
   scene.add(mesh);
+  scene.add(mesh1);
   animated.push({
     mesh,
     material: m,
+    material1: m1,
   });
 }
 
@@ -131,6 +154,7 @@ function animate() {
   const elapsedTime = clock.getElapsedTime();
   animated.forEach((item) => {
     item.material.uniforms.uTime.value = elapsedTime;
+    item.material1.uniforms.uTime.value = elapsedTime;
   });
 
   controls.update();

@@ -7,7 +7,7 @@ varying vec2 vUv;
 
 void main() {
 
-    vec3 color = vec3(1.0, 1.0, 1.0);
+    vec3 color = vec3(0.0, 0.0, 0.0);
 
     float localProgress= mod(uTime * 2.0,1.0);
     if(vUv.x > localProgress || vUv.x + 1.0 < localProgress){
