@@ -4,10 +4,15 @@ import vertexShader from "./shader/vertex.glsl";
 import fragmentShader from "./shader/fragment.glsl";
 import GUI from "lil-gui";
 import "./style.css";
+import colors from "nice-color-palettes";
+
+let pallate = colors[Math.floor(Math.random() * 100)];
 
 // Scene setup
 const scene = new THREE.Scene();
-scene.background = new THREE.Color("#E2E2E2");
+scene.background = new THREE.Color("#000000");
+
+scene.rotation.z = Math.PI / 9;
 
 // const gui = new GUI();
 
@@ -28,7 +33,7 @@ const camera = new THREE.PerspectiveCamera(
   0.001,
   1000,
 );
-camera.position.z = 6;
+camera.position.z = 4;
 
 // Renderer setup
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -88,12 +93,21 @@ let animated = [];
 
 for (let i = 0; i < number; i++) {
   let level = range(-300, 300);
+  let zero = level / 300;
   let precision = 100;
-  let rad = 80;
+  let rad = 130 * zero * zero + Math.random() * 10;
   let spline = [];
-  for (let j = 0; j <= precision; j++) {
-    let x = rad * Math.sin((Math.PI * 2 * j) / precision);
-    let z = rad * Math.cos((Math.PI * 2 * j) / precision);
+  let offset = Math.abs(zero);
+  let width = Math.random() * 0.5 + 0.5;
+  let angle = range(0, Math.PI * 2);
+
+  let center = {
+    x: range(-10, 10),
+    y: range(-10, 10),
+  };
+  for (let j = 0; j <= precision * width; j++) {
+    let x = center.x + rad * Math.sin((Math.PI * 2 * j) / precision);
+    let z = center.y + rad * Math.cos((Math.PI * 2 * j) / precision);
     spline.push(new THREE.Vector3(x, level, z));
   }
 
@@ -108,7 +122,7 @@ for (let i = 0; i < number; i++) {
   let tubeGeometry = new THREE.TubeGeometry(
     sampleClosedSpline,
     params.extrusionSegments,
-    2,
+    1.5,
     params.radiusSegments,
     params.closed,
   );
@@ -116,7 +130,7 @@ for (let i = 0; i < number; i++) {
   let tubeGeometry1 = new THREE.TubeGeometry(
     sampleClosedSpline,
     params.extrusionSegments,
-    3,
+    2,
     params.radiusSegments,
     params.closed,
   );
@@ -126,10 +140,16 @@ for (let i = 0; i < number; i++) {
 
   let mesh = new THREE.Mesh(tubeGeometry, m);
   let mesh1 = new THREE.Mesh(tubeGeometry1, m1);
-  m.uniforms.uColor.value = new THREE.Color("#ffffff");
+  m.uniforms.uColor.value = new THREE.Color(
+    pallate[Math.floor(Math.random() * 5)],
+  );
+  m.uniforms.uOffset.value = offset;
+  m1.uniforms.uOffset.value = offset;
   m1.side = THREE.BackSide;
   mesh.scale.set(0.01, 0.01, 0.01);
   mesh1.scale.set(0.01, 0.01, 0.01);
+
+  mesh.rotation.y = mesh1.rotation.y = angle;
   scene.add(mesh);
   scene.add(mesh1);
   animated.push({

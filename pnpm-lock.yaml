@@ -14,6 +14,9 @@ importers:
       lil-gui:
         specifier: ^0.21.0
         version: 0.21.0
+      nice-color-palettes:
+        specifier: ^4.0.0
+        version: 4.0.0
       three:
         specifier: ^0.182.0
         version: 0.182.0
@@ -357,6 +360,9 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
+  nice-color-palettes@4.0.0:
+    resolution: {integrity: sha512-lP/4LoL0Q9L9JX1UMb80BYbRCqZPnLqzuBCPI7mpqIw1HQjt/jk/U8SJF28EmudAZkJ5zG65x2HYla9wvmdxbw==}
+
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
 
@@ -638,6 +644,8 @@ snapshots:
   lil-gui@0.21.0: {}
 
   nanoid@3.3.11: {}
+
+  nice-color-palettes@4.0.0: {}
 
   picocolors@1.1.1: {}
 
