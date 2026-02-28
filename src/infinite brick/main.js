@@ -10,6 +10,7 @@ const gui = new GUI();
 
 // Scene setup
 const scene = new THREE.Scene();
+// scene.position.y = -7;
 scene.background = new THREE.Color(0x000000);
 
 const sizes = {
@@ -20,12 +21,12 @@ const sizes = {
 
 // Camera setup
 const camera = new THREE.PerspectiveCamera(
-  70,
+  75,
   sizes.width / sizes.height,
   0.1,
   1000,
 );
-camera.position.z = 4;
+camera.position.z = 12;
 
 // Renderer setup
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -39,12 +40,33 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 
 // Lighting
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-scene.add(ambientLight);
+// const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+// scene.add(ambientLight);
+
+const directionalLight = new THREE.DirectionalLight(0xffffff, 3);
+directionalLight.position.set(4, 2, 4);
+scene.add(directionalLight);
 
 //Geometry
-const mesh = getBrick(1, 5);
-scene.add(mesh);
+
+let num = 12;
+let rows = 10;
+let anim = [];
+
+for (let j = 0; j < rows; j++) {
+  for (let i = 0; i < num; i++) {
+    const mesh = getBrick(i, num, j % 2);
+    mesh.position.y = -j;
+    scene.add(mesh);
+
+    anim.push({
+      y: -j,
+      row: j,
+      mesh,
+      offset: Math.random(),
+    });
+  }
+}
 
 // Handle window resize
 window.addEventListener("resize", () => {
@@ -63,6 +85,14 @@ function animate() {
   requestAnimationFrame(animate);
 
   const elapsedTime = clock.getElapsedTime();
+
+  anim.forEach((m) => {
+    m.mesh.position.setY(m.y + Math.sin(elapsedTime) * 2);
+
+    if (m.row < 2) {
+      m.mesh.position.setY(m.y + Math.sin(elapsedTime) * 6);
+    }
+  });
 
   controls.update();
   renderer.render(scene, camera);
