@@ -9,9 +9,13 @@ import vertexShader from "./shader/vertex.glsl";
 // GUI setup
 const gui = new GUI();
 
+const parameters = {
+  size: 1,
+};
+
 // Scene setup
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xffffff);
+scene.background = new THREE.Color(0x000000);
 
 const sizes = {
   width: window.innerWidth,
@@ -44,11 +48,11 @@ const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
 scene.add(ambientLight);
 
 //Geometry
-const planeGeometry = new THREE.PlaneGeometry(100, 100, 1, 1);
+const planeGeometry = new THREE.PlaneGeometry(250, 450, 1, 1);
 
 const planeMaterial = new THREE.MeshBasicMaterial({
   color: 0x000000,
-  side: THREE.DoubleSide,
+  visible: false,
 });
 
 //Material
@@ -56,34 +60,36 @@ const material = new THREE.ShaderMaterial({
   vertexShader,
   fragmentShader,
   uniforms: {
-    uSize: new THREE.Uniform(10.0),
+    uSize: new THREE.Uniform(parameters.size),
+    uMouse: new THREE.Uniform(new THREE.Vector3(0, 0, 0)),
     uResolution: new THREE.Uniform(
       new THREE.Vector2(
         sizes.width * sizes.pixelRation,
         sizes.height * sizes.pixelRation,
       ),
     ),
+    uTime: new THREE.Uniform(0),
   },
 });
 
 const plane = new THREE.Mesh(planeGeometry, planeMaterial);
 scene.add(plane);
 
+let points;
+
 //GLTF Loader
 const gltfLoader = new GLTFLoader();
 gltfLoader.load("/models/beyonce/beyonce.glb", (gltf) => {
-  scene.add(gltf.scene);
-
   const geometry = new THREE.BufferGeometry();
-  const positionArray =
+  const originalPositions =
     gltf.scene.children[0].geometry.attributes.position.array;
 
   geometry.setAttribute(
     "position",
-    new THREE.BufferAttribute(positionArray, 3),
+    new THREE.BufferAttribute(originalPositions, 3),
   );
 
-  const points = new THREE.Points(geometry, material);
+  points = new THREE.Points(geometry, material);
   scene.add(points);
 });
 
@@ -106,6 +112,15 @@ window.addEventListener("resize", () => {
   renderer.setPixelRatio(sizes.pixelRation);
 });
 
+gui
+  .add(parameters, "size")
+  .min(0.1)
+  .max(2)
+  .step(0.01)
+  .onChange((value) => {
+    material.uniforms.uSize.value = value;
+  });
+
 const clock = new THREE.Clock();
 
 // Animation loop
@@ -114,11 +129,17 @@ function animate() {
 
   const elapsedTime = clock.getElapsedTime();
 
+  if (points) {
+    material.uniforms.uTime.value = elapsedTime;
+
+    // points.rotation.y += 0.01;
+  }
+
   raycaster.setFromCamera(mouse, camera);
   const intersects = raycaster.intersectObjects([plane]);
 
   if (intersects.length > 0) {
-    console.log("Mouse is intersecting with the plane");
+    material.uniforms.uMouse.value = intersects[0].point;
   }
 
   controls.update();
