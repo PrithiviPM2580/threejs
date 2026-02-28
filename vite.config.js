@@ -53,6 +53,10 @@ export default defineConfig({
           __dirname,
           "src/beyonce particle/index.html",
         ),
+        "infinite-brick": path.resolve(
+          __dirname,
+          "src/infinite brick/index.html",
+        ),
       },
     },
   },
