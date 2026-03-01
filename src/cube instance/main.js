@@ -40,7 +40,7 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 
 // Lighting
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.08);
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
 scene.add(ambientLight);
 
 const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
@@ -63,6 +63,15 @@ scene.add(splotLight);
 const spotLightHelper = new THREE.SpotLightHelper(splotLight, 0x66ccff);
 scene.add(spotLightHelper);
 
+const uniforms = {
+  uTime: new THREE.Uniform(0),
+  uLightColor: new THREE.Uniform(new THREE.Color("#ffe9e9")),
+  uRampColorOne: new THREE.Uniform(new THREE.Color("#068820")),
+  uRampColorTwo: new THREE.Uniform(new THREE.Color("#028284")),
+  uRampColorThree: new THREE.Uniform(new THREE.Color("#0000ff")),
+  uRampColorFour: new THREE.Uniform(new THREE.Color("#71c7f5")),
+};
+
 //Geometry and Material
 const cubeGeometry = new RoundedBoxGeometry(1, 1, 1, 4, 0.2);
 // const material = new THREE.ShaderMaterial({
@@ -76,17 +85,77 @@ const material = new THREE.MeshPhysicalMaterial({
   clearcoat: 0.0,
 });
 
+material.onBeforeCompile = (shader) => {
+  shader.uniforms = Object.assign(shader.uniforms, uniforms);
+  shader.vertexShader = shader.vertexShader.replace(
+    "#include <common>",
+    `
+    uniform float uTime;
+    uniform vec3 uLightColor;
+    uniform vec3 uRampColorOne;
+    uniform vec3 uRampColorTwo;
+    uniform vec3 uRampColorThree;
+    uniform vec3 uRampColorFour;
+    attribute vec2 aInstanceUv;
+    varying vec2 vUv;
+    varying float vHeightUv;
+
+    #include <common>
+    `,
+  );
+  shader.vertexShader = shader.vertexShader.replace(
+    "#include <begin_vertex>",
+    `
+    #include <begin_vertex>
+    vHeightUv= clamp(position.y*2.0,0.,1.);
+    vUv = aInstanceUv;
+    `,
+  );
+
+  shader.fragmentShader = shader.fragmentShader.replace(
+    "#include <common>",
+    `
+    uniform float uTime;
+    uniform vec3 uLightColor;
+    uniform vec3 uRampColorOne;
+    uniform vec3 uRampColorTwo;
+    uniform vec3 uRampColorThree;
+    uniform vec3 uRampColorFour;
+    varying vec2 vUv;
+    varying float vHeightUv;
+    #include <common>
+
+    `,
+  );
+  shader.fragmentShader = shader.fragmentShader.replace(
+    "#include <color_fragment>",
+    `
+    #include <color_fragment>
+
+    vec3 rampColor = mix(uRampColorOne, uRampColorFour, vUv.x);
+    diffuseColor.rgb = mix(rampColor, uRampColorThree, vHeightUv) * uLightColor;
+
+    `,
+  );
+};
+
 const instance = size ** 2;
 const instanceMesh = new THREE.InstancedMesh(cubeGeometry, material, instance);
 let dummy = new THREE.Object3D();
+let instanceUv = new Float32Array(instance * 2);
 for (let i = 0; i < size; i++) {
   for (let j = 0; j < size; j++) {
     dummy.position.set(spacing * (i - size / 2), 0, spacing * (j - size / 2));
     dummy.updateMatrix();
     instanceMesh.setMatrixAt(i * size + j, dummy.matrix);
+    instanceUv.set([i / size, j / size], (i * size + j) * 2);
   }
 }
-
+// instanceMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+instanceMesh.geometry.setAttribute(
+  "aInstanceUv",
+  new THREE.InstancedBufferAttribute(instanceUv, 2),
+);
 scene.add(instanceMesh);
 
 // Handle window resize
