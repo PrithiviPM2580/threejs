@@ -67,8 +67,9 @@ const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
 scene.add(ambientLight);
 
 //Geometry and Material
-const width = 32;
-const height = 32;
+const weight = 32;
+const width = weight;
+const height = weight;
 
 const size = width * height;
 const data = new Uint8Array(4 * size);
@@ -114,6 +115,35 @@ const material = new THREE.ShaderMaterial({
 const plane = new THREE.Mesh(geometry, material);
 scene.add(plane);
 
+function upateTexture() {
+  let data = texture.image.data;
+  for (let i = 0; i < data.length; i += 4) {
+    data[i] *= 0.98;
+    data[i + 1] *= 0.99;
+  }
+
+  let gridMouseX = weight * mouse.x;
+  let gridMouseY = weight * mouse.y;
+  let maxDis = 8;
+
+  for (let i = 0; i < weight; i++) {
+    for (let j = 0; j < weight; j++) {
+      let distance = (gridMouseX - i) ** 2 + (gridMouseY - j) ** 2;
+      let maxDistSq = maxDis ** 2;
+      if (distance < maxDistSq) {
+        let index = (i + weight * j) * 4;
+        let strength = maxDis / Math.sqrt(distance);
+        data[index] += 100 * mouse.vX * strength;
+        data[index + 1] += 100 * mouse.vY * strength;
+      }
+    }
+  }
+
+  mouse.vX *= 0.9;
+  mouse.vY *= 0.9;
+  texture.needsUpdate = true;
+}
+
 window.addEventListener("mousemove", (event) => {
   mouse.x = event.clientX / sizes.width;
   mouse.y = event.clientY / sizes.height;
@@ -123,8 +153,6 @@ window.addEventListener("mousemove", (event) => {
 
   mouse.prevX = mouse.x;
   mouse.prevY = mouse.y;
-
-  console.log(mouse.vX, mouse.vY);
 });
 
 // Handle window resize
@@ -142,6 +170,7 @@ function animate() {
   requestAnimationFrame(animate);
   clock.getElapsedTime();
 
+  upateTexture();
   controls.update();
   renderer.render(scene, camera);
 }
