@@ -40,24 +40,24 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 
 // Lighting
-// const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-// scene.add(ambientLight);
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.08);
+scene.add(ambientLight);
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
-directionalLight.position.set(1, 2, 3);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+directionalLight.position.set(0, 50, 0);
 scene.add(directionalLight);
 
-const splotLight = new THREE.SpotLight(0x66ccff, 250);
-splotLight.position.set(-40, 100, -40);
+const splotLight = new THREE.SpotLight(0x66ccff, 3000);
+splotLight.position.set(-30, 20, 0);
 let target = new THREE.Object3D();
 target.position.set(0, 0, 0);
 splotLight.target = target;
 scene.add(target);
-splotLight.intensity = 250;
-splotLight.angle = 0.35;
-splotLight.penumbra = 0.35;
-splotLight.decay = 2;
-splotLight.distance = 180;
+splotLight.intensity = 3000;
+splotLight.angle = 0.15;
+splotLight.penumbra = 1.2;
+splotLight.decay = 1.5;
+splotLight.distance = 80;
 scene.add(splotLight);
 
 const spotLightHelper = new THREE.SpotLightHelper(splotLight, 0x66ccff);
@@ -71,11 +71,9 @@ const cubeGeometry = new RoundedBoxGeometry(1, 1, 1, 4, 0.2);
 // });
 const material = new THREE.MeshPhysicalMaterial({
   color: new THREE.Color("#3613d3"),
-  roughness: 0.5,
-  metalness: 0.5,
-  clearcoat: 1.0,
-  clearcoatRoughness: 0.1,
-  reflectivity: 1.0,
+  roughness: 0.85,
+  metalness: 0.0,
+  clearcoat: 0.0,
 });
 
 const instance = size ** 2;
