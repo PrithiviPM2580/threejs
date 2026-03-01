@@ -61,6 +61,10 @@ export default defineConfig({
           __dirname,
           "src/cube instance/index.html",
         ),
+        "image-distortion": path.resolve(
+          __dirname,
+          "src/image distortion/index.html",
+        ),
       },
     },
   },
