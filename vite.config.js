@@ -57,6 +57,10 @@ export default defineConfig({
           __dirname,
           "src/infinite brick/index.html",
         ),
+        "cube-instance": path.resolve(
+          __dirname,
+          "src/cube instance/index.html",
+        ),
       },
     },
   },
