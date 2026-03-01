@@ -17,6 +17,15 @@ const sizes = {
   pixelRation: Math.min(window.devicePixelRatio, 2),
 };
 
+const mouse = {
+  x: 0,
+  y: 0,
+  prevX: 0,
+  prevY: 0,
+  vX: 0,
+  vY: 0,
+};
+
 // Camera setup
 // const camera = new THREE.PerspectiveCamera(
 //   45,
@@ -62,30 +71,27 @@ const width = 32;
 const height = 32;
 
 const size = width * height;
-const data = new Float32Array(3 * size);
-const color = new THREE.Color("#ffffff");
-
-const r = Math.floor(color.r * 255);
-const g = Math.floor(color.g * 255);
-const b = Math.floor(color.b * 255);
+const data = new Uint8Array(4 * size);
 
 for (let i = 0; i < size; i++) {
-  let r = Math.random();
-  const stride = i * 3;
-  data[stride] = r;
-  data[stride + 1] = r;
-  data[stride + 2] = r;
+  const value = Math.floor(Math.random() * 255);
+  const stride = i * 4;
+  data[stride] = value;
+  data[stride + 1] = value;
+  data[stride + 2] = value;
+  data[stride + 3] = 255;
 }
 
 const texture = new THREE.DataTexture(
   data,
   width,
   height,
-  THREE.RGBFormat,
-  THREE.FloatType,
+  THREE.RGBAFormat,
+  THREE.UnsignedByteType,
 );
 texture.magFilter = texture.minFilter = THREE.NearestFilter;
-// texture.needsUpdate = true;
+texture.generateMipmaps = false;
+texture.needsUpdate = true;
 
 const geometry = new THREE.PlaneGeometry(2, 2, 32, 32);
 
@@ -107,6 +113,19 @@ const material = new THREE.ShaderMaterial({
 
 const plane = new THREE.Mesh(geometry, material);
 scene.add(plane);
+
+window.addEventListener("mousemove", (event) => {
+  mouse.x = event.clientX / sizes.width;
+  mouse.y = event.clientY / sizes.height;
+
+  mouse.vX = mouse.x - mouse.prevX;
+  mouse.vY = mouse.y - mouse.prevY;
+
+  mouse.prevX = mouse.x;
+  mouse.prevY = mouse.y;
+
+  console.log(mouse.vX, mouse.vY);
+});
 
 // Handle window resize
 window.addEventListener("resize", () => {

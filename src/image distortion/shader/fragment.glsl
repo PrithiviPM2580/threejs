@@ -16,6 +16,7 @@ void main() {
     vec4 offset = texture2D(uDataTexture, vUv);
 
     gl_FragColor= vec4(offset.r,0.0,0.0,1.0);
+    gl_FragColor= texture2D(uTexture,newUv - 0.02 * offset.rg);
     // gl_FragColor = vec4(1.0,0.0,0.0, 1.0);
     // #include <tonemapping_fragment>
     // #include <colorspace_fragment>
