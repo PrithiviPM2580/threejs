@@ -3,35 +3,49 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import vertexShader from "./shader/vertex.glsl";
 import fragmentShader from "./shader/fragment.glsl";
 import "./style.css";
-import { RoundedBoxGeometry } from "three/examples/jsm/Addons.js";
 
 // Scene setup
 const scene = new THREE.Scene();
 scene.background = new THREE.Color("#000000");
 
-const size = 30;
-const spacing = 1.5;
-const gridSpan = size * spacing;
+const textureLoader = new THREE.TextureLoader();
+const imageTexture = textureLoader.load("/textures/potrait.png");
+
+const sizes = {
+  width: window.innerWidth,
+  height: window.innerHeight,
+  pixelRation: Math.min(window.devicePixelRatio, 2),
+};
 
 // Camera setup
-let frustumSize = gridSpan * 1.25;
-const aspect = window.innerWidth / window.innerHeight;
+// const camera = new THREE.PerspectiveCamera(
+//   45,
+//   sizes.width / sizes.height,
+//   0.1,
+//   1000,
+// );
+// camera.position.set(0, 0, 5);
+// camera.lookAt(0, 0, 0);
+
+let frustumSize = 1;
+const aspect = sizes.width / sizes.height;
 const camera = new THREE.OrthographicCamera(
   (frustumSize * aspect) / -2,
   (frustumSize * aspect) / 2,
   frustumSize / 2,
   frustumSize / -2,
   0.1,
-  100,
+  1000,
 );
-camera.position.set(gridSpan * 0.7, gridSpan * 0.8, gridSpan * 0.7);
-camera.lookAt(0, 0, 0);
+camera.position.set(0, 0, 2);
+// camera.lookAt(0, 0, 0);
 
 // Renderer setup
 const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.setSize(sizes.width, sizes.height);
+renderer.setPixelRatio(sizes.pixelRation);
+// renderer.toneMapping = THREE.ACESFilmicToneMapping;
+// renderer.outputColorSpace = THREE.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
 
 // Orbit Controls
@@ -43,130 +57,64 @@ controls.dampingFactor = 0.05;
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
 scene.add(ambientLight);
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-directionalLight.position.set(0, 50, 0);
-scene.add(directionalLight);
-
-const splotLight = new THREE.SpotLight(0x66ccff, 3000);
-splotLight.position.set(-30, 20, 0);
-let target = new THREE.Object3D();
-target.position.set(0, 0, 0);
-splotLight.target = target;
-scene.add(target);
-splotLight.intensity = 3000;
-splotLight.angle = 0.15;
-splotLight.penumbra = 1.2;
-splotLight.decay = 1.5;
-splotLight.distance = 80;
-scene.add(splotLight);
-
-const spotLightHelper = new THREE.SpotLightHelper(splotLight, 0x66ccff);
-scene.add(spotLightHelper);
-
-const uniforms = {
-  uTime: new THREE.Uniform(0),
-  uLightColor: new THREE.Uniform(new THREE.Color("#ffe9e9")),
-  uRampColorOne: new THREE.Uniform(new THREE.Color("#068820")),
-  uRampColorTwo: new THREE.Uniform(new THREE.Color("#028284")),
-  uRampColorThree: new THREE.Uniform(new THREE.Color("#0000ff")),
-  uRampColorFour: new THREE.Uniform(new THREE.Color("#71c7f5")),
-};
-
 //Geometry and Material
-const cubeGeometry = new RoundedBoxGeometry(1, 1, 1, 4, 0.2);
-// const material = new THREE.ShaderMaterial({
-//   vertexShader,
-//   fragmentShader,
-// });
-const material = new THREE.MeshPhysicalMaterial({
-  color: new THREE.Color("#3613d3"),
-  roughness: 0.85,
-  metalness: 0.0,
-  clearcoat: 0.0,
+const width = 32;
+const height = 32;
+
+const size = width * height;
+const data = new Float32Array(3 * size);
+const color = new THREE.Color("#ffffff");
+
+const r = Math.floor(color.r * 255);
+const g = Math.floor(color.g * 255);
+const b = Math.floor(color.b * 255);
+
+for (let i = 0; i < size; i++) {
+  let r = Math.random();
+  const stride = i * 3;
+  data[stride] = r;
+  data[stride + 1] = r;
+  data[stride + 2] = r;
+}
+
+const texture = new THREE.DataTexture(
+  data,
+  width,
+  height,
+  THREE.RGBFormat,
+  THREE.FloatType,
+);
+texture.magFilter = texture.minFilter = THREE.NearestFilter;
+// texture.needsUpdate = true;
+
+const geometry = new THREE.PlaneGeometry(2, 2, 32, 32);
+
+const material = new THREE.ShaderMaterial({
+  vertexShader,
+  fragmentShader,
+  uniforms: {
+    uTime: new THREE.Uniform(0),
+    uResolution: new THREE.Uniform(
+      new THREE.Vector2(
+        sizes.width * sizes.pixelRation,
+        sizes.height * sizes.pixelRation,
+      ),
+    ),
+    uTexture: new THREE.Uniform(imageTexture),
+    uDataTexture: new THREE.Uniform(texture),
+  },
 });
 
-material.onBeforeCompile = (shader) => {
-  shader.uniforms = Object.assign(shader.uniforms, uniforms);
-  shader.vertexShader = shader.vertexShader.replace(
-    "#include <common>",
-    `
-    uniform float uTime;
-    uniform vec3 uLightColor;
-    uniform vec3 uRampColorOne;
-    uniform vec3 uRampColorTwo;
-    uniform vec3 uRampColorThree;
-    uniform vec3 uRampColorFour;
-    attribute vec2 aInstanceUv;
-    varying vec2 vUv;
-    varying float vHeightUv;
-
-    #include <common>
-    `,
-  );
-  shader.vertexShader = shader.vertexShader.replace(
-    "#include <begin_vertex>",
-    `
-    #include <begin_vertex>
-    vHeightUv= clamp(position.y*2.0,0.,1.);
-    vUv = aInstanceUv;
-    `,
-  );
-
-  shader.fragmentShader = shader.fragmentShader.replace(
-    "#include <common>",
-    `
-    uniform float uTime;
-    uniform vec3 uLightColor;
-    uniform vec3 uRampColorOne;
-    uniform vec3 uRampColorTwo;
-    uniform vec3 uRampColorThree;
-    uniform vec3 uRampColorFour;
-    varying vec2 vUv;
-    varying float vHeightUv;
-    #include <common>
-
-    `,
-  );
-  shader.fragmentShader = shader.fragmentShader.replace(
-    "#include <color_fragment>",
-    `
-    #include <color_fragment>
-
-    vec3 rampColor = mix(uRampColorOne, uRampColorFour, vUv.x);
-    diffuseColor.rgb = mix(rampColor, uRampColorThree, vHeightUv) * uLightColor;
-
-    `,
-  );
-};
-
-const instance = size ** 2;
-const instanceMesh = new THREE.InstancedMesh(cubeGeometry, material, instance);
-let dummy = new THREE.Object3D();
-let instanceUv = new Float32Array(instance * 2);
-for (let i = 0; i < size; i++) {
-  for (let j = 0; j < size; j++) {
-    dummy.position.set(spacing * (i - size / 2), 0, spacing * (j - size / 2));
-    dummy.updateMatrix();
-    instanceMesh.setMatrixAt(i * size + j, dummy.matrix);
-    instanceUv.set([i / size, j / size], (i * size + j) * 2);
-  }
-}
-// instanceMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-instanceMesh.geometry.setAttribute(
-  "aInstanceUv",
-  new THREE.InstancedBufferAttribute(instanceUv, 2),
-);
-scene.add(instanceMesh);
+const plane = new THREE.Mesh(geometry, material);
+scene.add(plane);
 
 // Handle window resize
 window.addEventListener("resize", () => {
-  const newAspect = window.innerWidth / window.innerHeight;
-  camera.left = (-frustumSize * newAspect) / 2;
-  camera.right = (frustumSize * newAspect) / 2;
-  camera.top = frustumSize / 2;
-  camera.bottom = -frustumSize / 2;
+  const newAspect = sizes.width / sizes.height;
+  camera.aspect = newAspect;
   camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setSize(sizes.width, sizes.height);
+  renderer.setPixelRatio(sizes.pixelRation);
 });
 
 const clock = new THREE.Clock();
@@ -174,7 +122,6 @@ const clock = new THREE.Clock();
 function animate() {
   requestAnimationFrame(animate);
   clock.getElapsedTime();
-  spotLightHelper.update();
 
   controls.update();
   renderer.render(scene, camera);
