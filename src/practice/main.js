@@ -12,8 +12,8 @@ const imageLink =
 const gui = new GUI();
 
 const parameters = {
-  size: 1,
   mix: 0.5,
+  scale: 0.5,
 };
 
 // Scene setup
@@ -35,6 +35,7 @@ const texture = textureLoader.load(imageLink, (loadedTexture) => {
 
 const videoDOM = document.getElementById("video-bg");
 videoDOM.crossOrigin = "anonymous";
+videoDOM.style.display = "none";
 const video = new THREE.VideoTexture(videoDOM);
 videoDOM.addEventListener("loadedmetadata", () => {
   videoResolution.set(videoDOM.videoWidth, videoDOM.videoHeight);
@@ -82,7 +83,7 @@ const material = new THREE.ShaderMaterial({
   vertexShader,
   fragmentShader,
   uniforms: {
-    uTime: new THREE.Uniform(0),
+    time: new THREE.Uniform(0),
     uResolution: new THREE.Uniform(
       new THREE.Vector2(
         sizes.width * sizes.pixelRatio,
@@ -94,16 +95,21 @@ const material = new THREE.ShaderMaterial({
     uVideo: new THREE.Uniform(video),
     uTexture: new THREE.Uniform(texture),
     uMix: new THREE.Uniform(parameters.mix),
+    uCircleScale: new THREE.Uniform(parameters.scale),
   },
-});
-
-gui.add(parameters, "mix", 0, 1, 0.001).onChange((value) => {
-  material.uniforms.uMix.value = value;
 });
 
 const plane = new THREE.Mesh(geometry, material);
 plane.scale.set(frustumSize * aspect, frustumSize, 1);
 scene.add(plane);
+
+gui.add(parameters, "mix", 0, 1, 0.001).onChange((value) => {
+  material.uniforms.uMix.value = value;
+});
+
+gui.add(parameters, "scale", 0, 2, 0.001).onChange((value) => {
+  material.uniforms.uCircleScale.value = value;
+});
 
 // Handle window resize
 window.addEventListener("resize", () => {
@@ -132,6 +138,8 @@ function animate() {
   requestAnimationFrame(animate);
 
   const elapsedTime = clock.getElapsedTime();
+
+  material.uniforms.time.value = elapsedTime * 0.2;
 
   controls.update();
   renderer.render(scene, camera);
