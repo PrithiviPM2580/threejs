@@ -65,6 +65,7 @@ export default defineConfig({
           __dirname,
           "src/image distortion/index.html",
         ),
+        practice: path.resolve(__dirname, "src/practice/index.html"),
       },
     },
   },
