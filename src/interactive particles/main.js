@@ -44,7 +44,7 @@ controls.dampingFactor = 0.05;
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
 scene.add(ambientLight);
 
-const fboSize = 128;
+const fboSize = 256;
 
 // Ping-pong render targets (simulation textures)
 let fbo = new THREE.WebGLRenderTarget(fboSize, fboSize, {
@@ -152,7 +152,7 @@ const material = new THREE.ShaderMaterial({
   fragmentShader,
   uniforms: {
     uTime: new THREE.Uniform(0),
-    uSize: new THREE.Uniform(1.5),
+    uSize: new THREE.Uniform(2),
     uPositions: new THREE.Uniform(fboTexture),
     uInfo: new THREE.Uniform(infoTexture),
     uResolution: new THREE.Uniform(
@@ -162,6 +162,9 @@ const material = new THREE.ShaderMaterial({
       ),
     ),
   },
+  transparent: true,
+  depthWrite: false,
+  blending: THREE.AdditiveBlending,
 });
 
 const points = new THREE.Points(geometry, material);
