@@ -66,6 +66,10 @@ export default defineConfig({
           "src/image distortion/index.html",
         ),
         practice: path.resolve(__dirname, "src/practice/index.html"),
+        "interactive-particles": path.resolve(
+          __dirname,
+          "src/interactive particles/index.html",
+        ),
       },
     },
   },
