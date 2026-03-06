@@ -12,3 +12,337 @@ make the mesh with the points and geomtry with the buffer geometry and shader ma
 initilize raycaster, mouse and setFromCamera and intersectObjects to the scene children
 make a mousemove event function and make it goes from -1 to 1
 send vec3 mousePos as auniform
+
+1️⃣ Change the size and proportions of the rectangle
+
+If you are using a simple rectangle mask like this:
+
+vec2 bl = step(vec2(0.2), st);
+vec2 tr = step(vec2(0.2), 1.0 - st);
+float rect = bl.x * bl.y * tr.x * tr.y;
+
+You can control width and height independently.
+
+Example:
+
+vec2 size = vec2(0.3, 0.5);   // width, height
+
+vec2 bl = step(size, st);
+vec2 tr = step(size, 1.0 - st);
+
+float rect = bl.x * bl.y * tr.x * tr.y;
+
+Try values like:
+
+vec2(0.2,0.2)  → square
+vec2(0.4,0.1)  → wide rectangle
+vec2(0.1,0.5)  → tall rectangle
+2️⃣ Use smoothstep() instead of step()
+
+step() creates hard edges.
+
+0 0 0 0 1 1 1
+
+smoothstep() creates smooth edges.
+
+0 0 0 .2 .5 .8 1
+
+Example:
+
+float edge = 0.01;
+
+vec2 bl = smoothstep(size, size + edge, st);
+vec2 tr = smoothstep(size, size + edge, 1.0 - st);
+
+float rect = bl.x * bl.y * tr.x * tr.y;
+Experiment
+
+Change edge:
+
+0.001 → sharp edge
+0.02  → soft edge
+0.1   → blurry rectangle
+3️⃣ Implementation using floor()
+
+You can use floor() to make binary masks.
+
+Example:
+
+float rect =
+floor(st.x + 0.5) *
+floor(st.y + 0.5);
+
+But a more practical example:
+
+float rect =
+floor(st.x / 0.5) *
+floor(st.y / 0.5);
+
+This produces grid-style blocks.
+
+floor() is often used for tiling patterns.
+
+4️⃣ Turn your rectangle into a reusable function
+
+A good reusable rectangle function:
+
+float rect(vec2 st, vec2 pos, vec2 size)
+{
+    vec2 bl = step(pos, st);
+    vec2 tr = step(pos, 1.0 - st + size);
+
+    return bl.x * bl.y * tr.x * tr.y;
+}
+
+Usage:
+
+float r = rect(st, vec2(0.3,0.3), vec2(0.2,0.4));
+
+Now you can place rectangles anywhere.
+
+5️⃣ Function for rectangle outline
+
+Outline = big rectangle minus small rectangle
+
+float rectOutline(vec2 st, vec2 pos, vec2 size, float thickness)
+{
+    float outer = rect(st, pos, size);
+    float inner = rect(st, pos + thickness, size - thickness*2.0);
+    return outer - inner;
+}
+
+Usage:
+
+float outline = rectOutline(st, vec2(0.2,0.2), vec2(0.6,0.6), 0.02);
+6️⃣ Drawing multiple rectangles
+
+In shaders you add masks together.
+
+Example:
+
+float r1 = rect(st, vec2(0.1,0.1), vec2(0.3,0.4));
+float r2 = rect(st, vec2(0.5,0.2), vec2(0.2,0.5));
+
+float shape = r1 + r2;
+
+Or color them differently:
+
+vec3 color = vec3(0.0);
+
+color += r1 * vec3(1.0,0.0,0.0);
+color += r2 * vec3(0.0,0.0,1.0);
+7️⃣ Piet Mondrian style composition
+
+A Mondrian painting uses:
+
+rectangles
+
+primary colors
+
+black borders
+
+Example idea:
+
+vec3 color = vec3(1.0); // white background
+
+float r1 = rect(st, vec2(0.0,0.0), vec2(0.4,0.6));
+color = mix(color, vec3(1.0,0.0,0.0), r1);
+
+float r2 = rect(st, vec2(0.4,0.6), vec2(0.6,0.4));
+color = mix(color, vec3(0.0,0.0,1.0), r2);
+
+float r3 = rect(st, vec2(0.0,0.6), vec2(0.4,0.4));
+color = mix(color, vec3(1.0,1.0,0.0), r3);
+
+Colors to use:
+
+Red    vec3(1,0,0)
+Blue   vec3(0,0,1)
+Yellow vec3(1,1,0)
+White  vec3(1)
+Black  vec3(0)
+
+✅ What the exercise is really teaching
+
+You learn:
+
+step() → hard masks
+
+smoothstep() → soft edges
+
+floor() → patterns / grids
+
+reusable shape functions
+
+combining shapes into compositions
+
+These are core procedural shader skills.
+
+
+This confusion is completely normal when learning shaders. The trick is to think of shapes as masks (0 or 1 values) and treat math operations like logic operations.
+
+You’re basically doing visual boolean operations in OpenGL Shading Language.
+
+1. Think of Shapes as Masks
+
+Every shape function returns:
+
+0 → outside
+1 → inside
+
+Example rectangle mask:
+
+0 0 0 0
+0 1 1 0
+0 1 1 0
+0 0 0 0
+2. Multiplication * → Intersection (AND)
+
+Use * when you want only the overlapping area.
+
+A * B
+
+Example:
+
+Shape A:
+0 1 1
+0 1 1
+0 0 0
+
+Shape B:
+0 0 0
+1 1 0
+1 1 0
+
+Result:
+
+0 0 0
+0 1 0
+0 0 0
+
+Only the shared area remains.
+
+Example shader idea:
+
+float shape = circle * rectangle;
+3. Addition + → Union (Combine Shapes)
+
+Use + when you want both shapes visible.
+
+A + B
+
+Example:
+
+A:
+0 1 0
+0 1 0
+0 0 0
+
+B:
+0 0 0
+0 1 1
+0 0 0
+
+Result:
+
+0 1 0
+0 2 1
+0 0 0
+
+But colors clamp to 1, so it becomes:
+
+0 1 0
+0 1 1
+0 0 0
+
+Example shader:
+
+float shape = circle + rectangle;
+4. Subtraction - → Cut / Hole
+
+Use - when you want to remove a shape from another.
+
+A - B
+
+Example:
+
+big rectangle - small rectangle
+
+Result:
+
+████████
+██    ██
+██    ██
+████████
+
+Example shader:
+
+float shape = bigRect - smallRect;
+
+This creates frames and borders.
+
+5. Division / → Rarely Used
+
+Division usually distorts brightness, not shapes.
+
+Example:
+
+float shape = circle / 2.0;
+
+This just darkens the circle.
+
+So / is rarely used for shape logic.
+
+6. Easy Rule to Remember
+* → intersection (AND)
++ → union (OR)
+- → subtraction (CUT)
+
+Think like Photoshop layer operations.
+
+7. Real Shader Example
+float big = rect(st, vec2(0.1), vec2(0.1));
+float small = rect(st, vec2(0.3), vec2(0.3));
+
+float border = big - small;
+
+Result:
+
+rectangle frame
+8. Mental Model (Very Important)
+
+Shader artists imagine shapes like white paint on black canvas.
+
+0 = black
+1 = white
+
+Operations:
+
+A + B → paint both
+A * B → keep overlap
+A - B → erase
+9. Why Shaders Feel Hard
+
+Because you're mixing:
+
+math
+
+geometry
+
+logic
+
+GPU rendering
+
+But after 10–20 shaders, this becomes very natural.
+
+Many shader artists practice on platforms like
+Shadertoy or learn from resources like
+The Book of Shaders.
+
+✅ Simple practice rule
+
+Need overlap → *
+Need both → +
+Need hole → -
+
+💡 If you want, I can also show you the 7 fundamental shader shape tricks (circle, rectangle, ring, grid, cross, stripes, glow).
