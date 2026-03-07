@@ -8,10 +8,13 @@ import vertexShader from "./shader/vertex.glsl";
 // GUI setup
 const gui = new GUI();
 
-const parameters = {
-  mix: 0.5,
-  scale: 0.5,
-};
+const parameters = {};
+
+//Texture loader
+const textureLoader = new THREE.TextureLoader();
+const noiseTexture = textureLoader.load("/textures/noise/T_Noise56ko.png");
+noiseTexture.wrapS = THREE.RepeatWrapping;
+noiseTexture.wrapT = THREE.RepeatWrapping;
 
 // Scene setup
 const scene = new THREE.Scene();
@@ -41,7 +44,6 @@ camera.position.z = 10;
 //   0.1,
 //   1000,
 // );
-camera.position.z = 1;
 scene.add(camera);
 
 // Renderer setup
@@ -60,19 +62,34 @@ const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
 scene.add(ambientLight);
 
 //Geometry and Material
-const geometry = new THREE.PlaneGeometry(1, 1, 32, 32);
+const geometry = new THREE.CylinderGeometry(
+  2,
+  2.4,
+  5,
+  52,
+  52,
+  true,
+  0,
+  Math.PI * 2,
+);
 const material = new THREE.ShaderMaterial({
   vertexShader,
   fragmentShader,
+  side: THREE.DoubleSide,
+  // transparent: true,
+  // blending: THREE.AdditiveBlending,
+  // depthWrite: false,
   uniforms: {
-    time: new THREE.Uniform(0),
+    uTime: new THREE.Uniform(0),
     uResolution: new THREE.Uniform(
       new THREE.Vector2(
         sizes.width * sizes.pixelRatio,
         sizes.height * sizes.pixelRatio,
       ),
     ),
+    uNoiseTexture: new THREE.Uniform(noiseTexture),
   },
+  // wireframe: true,
 });
 
 const plane = new THREE.Mesh(geometry, material);
@@ -83,6 +100,7 @@ window.addEventListener("resize", () => {
   sizes.width = window.innerWidth;
   sizes.height = window.innerHeight;
   sizes.pixelRatio = Math.min(window.devicePixelRatio, 2);
+  camera.aspect = sizes.width / sizes.height;
   material.uniforms.uResolution.value.set(
     sizes.width * sizes.pixelRatio,
     sizes.height * sizes.pixelRatio,
@@ -99,7 +117,7 @@ function animate() {
   requestAnimationFrame(animate);
 
   const elapsedTime = clock.getElapsedTime();
-
+  material.uniforms.uTime.value = elapsedTime;
   controls.update();
   renderer.render(scene, camera);
 }
