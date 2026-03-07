@@ -4,6 +4,7 @@ import GUI from "lil-gui";
 import "./style.css";
 import fragmentShader from "./shader/fragment.glsl";
 import vertexShader from "./shader/vertex.glsl";
+import { noiseTexture } from "./constant.js";
 
 // GUI setup
 const gui = new GUI();
@@ -12,9 +13,9 @@ const parameters = {};
 
 //Texture loader
 const textureLoader = new THREE.TextureLoader();
-const noiseTexture = textureLoader.load("/textures/noise/T_Noise56ko.png");
-noiseTexture.wrapS = THREE.RepeatWrapping;
-noiseTexture.wrapT = THREE.RepeatWrapping;
+const noiseTextureMap = textureLoader.load(noiseTexture.noiseHu85k);
+noiseTextureMap.wrapS = THREE.RepeatWrapping;
+noiseTextureMap.wrapT = THREE.RepeatWrapping;
 
 // Scene setup
 const scene = new THREE.Scene();
@@ -76,9 +77,9 @@ const material = new THREE.ShaderMaterial({
   vertexShader,
   fragmentShader,
   side: THREE.DoubleSide,
-  // transparent: true,
-  // blending: THREE.AdditiveBlending,
-  // depthWrite: false,
+  transparent: true,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false,
   uniforms: {
     uTime: new THREE.Uniform(0),
     uResolution: new THREE.Uniform(
@@ -87,7 +88,7 @@ const material = new THREE.ShaderMaterial({
         sizes.height * sizes.pixelRatio,
       ),
     ),
-    uNoiseTexture: new THREE.Uniform(noiseTexture),
+    uNoiseTexture: new THREE.Uniform(noiseTextureMap),
   },
   // wireframe: true,
 });
