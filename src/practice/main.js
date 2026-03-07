@@ -1,12 +1,9 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import GUI from "lil-gui";
-import { GLTFLoader } from "three/examples/jsm/Addons.js";
 import "./style.css";
 import fragmentShader from "./shader/fragment.glsl";
 import vertexShader from "./shader/vertex.glsl";
-const imageLink =
-  "https://images.unsplash.com/photo-1500881263786-ad74c00b9e60?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
 
 // GUI setup
 const gui = new GUI();
@@ -26,39 +23,24 @@ const sizes = {
   pixelRatio: Math.min(window.devicePixelRatio, 2),
 };
 
-const textureLoader = new THREE.TextureLoader();
-const textureResolution = new THREE.Vector2(1, 1);
-const videoResolution = new THREE.Vector2(16, 9);
-const texture = textureLoader.load(imageLink, (loadedTexture) => {
-  textureResolution.set(loadedTexture.image.width, loadedTexture.image.height);
-});
-
-const videoDOM = document.getElementById("video-bg");
-videoDOM.crossOrigin = "anonymous";
-videoDOM.style.display = "none";
-const video = new THREE.VideoTexture(videoDOM);
-videoDOM.addEventListener("loadedmetadata", () => {
-  videoResolution.set(videoDOM.videoWidth, videoDOM.videoHeight);
-});
-
 // Camera setup
-// const camera = new THREE.PerspectiveCamera(
-//   70,
-//   sizes.width / sizes.height,
-//   0.1,
-//   1000,
-// );
-// camera.position.z = 4;
-const frustumSize = 1;
-const aspect = sizes.width / sizes.height;
-const camera = new THREE.OrthographicCamera(
-  (-frustumSize * aspect) / 2,
-  (frustumSize * aspect) / 2,
-  frustumSize / 2,
-  -frustumSize / 2,
+const camera = new THREE.PerspectiveCamera(
+  70,
+  sizes.width / sizes.height,
   0.1,
   1000,
 );
+camera.position.z = 10;
+// const frustumSize = 1;
+// const aspect = sizes.width / sizes.height;
+// const camera = new THREE.OrthographicCamera(
+//   (-frustumSize * aspect) / 2,
+//   (frustumSize * aspect) / 2,
+//   frustumSize / 2,
+//   -frustumSize / 2,
+//   0.1,
+//   1000,
+// );
 camera.position.z = 1;
 scene.add(camera);
 
@@ -90,38 +72,17 @@ const material = new THREE.ShaderMaterial({
         sizes.height * sizes.pixelRatio,
       ),
     ),
-    uTextureResolution: new THREE.Uniform(textureResolution),
-    uVideoResolution: new THREE.Uniform(videoResolution),
-    uVideo: new THREE.Uniform(video),
-    uTexture: new THREE.Uniform(texture),
-    uMix: new THREE.Uniform(parameters.mix),
-    uCircleScale: new THREE.Uniform(parameters.scale),
   },
 });
 
 const plane = new THREE.Mesh(geometry, material);
-plane.scale.set(frustumSize * aspect, frustumSize, 1);
 scene.add(plane);
-
-gui.add(parameters, "mix", 0, 1, 0.001).onChange((value) => {
-  material.uniforms.uMix.value = value;
-});
-
-gui.add(parameters, "scale", 0, 2, 0.001).onChange((value) => {
-  material.uniforms.uCircleScale.value = value;
-});
 
 // Handle window resize
 window.addEventListener("resize", () => {
   sizes.width = window.innerWidth;
   sizes.height = window.innerHeight;
   sizes.pixelRatio = Math.min(window.devicePixelRatio, 2);
-  const resizedAspect = sizes.width / sizes.height;
-  camera.left = (-frustumSize * resizedAspect) / 2;
-  camera.right = (frustumSize * resizedAspect) / 2;
-  camera.top = frustumSize / 2;
-  camera.bottom = -frustumSize / 2;
-  plane.scale.set(frustumSize * resizedAspect, frustumSize, 1);
   material.uniforms.uResolution.value.set(
     sizes.width * sizes.pixelRatio,
     sizes.height * sizes.pixelRatio,
@@ -138,8 +99,6 @@ function animate() {
   requestAnimationFrame(animate);
 
   const elapsedTime = clock.getElapsedTime();
-
-  material.uniforms.time.value = elapsedTime * 0.2;
 
   controls.update();
   renderer.render(scene, camera);
