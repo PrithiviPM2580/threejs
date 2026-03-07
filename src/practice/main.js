@@ -15,7 +15,7 @@ const parameters = {
 
 // Scene setup
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x000000);
+scene.background = new THREE.Color(0x222222);
 
 const sizes = {
   width: window.innerWidth,
