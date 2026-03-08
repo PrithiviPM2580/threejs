@@ -70,6 +70,10 @@ export default defineConfig({
           __dirname,
           "src/interactive particles/index.html",
         ),
+        "pixel-frequency": path.resolve(
+          __dirname,
+          "src/pixel frequency/index.html",
+        ),
       },
     },
   },
