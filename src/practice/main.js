@@ -17,6 +17,17 @@ const noiseTextureMap = textureLoader.load(noiseTexture.noiseHu85k);
 noiseTextureMap.wrapS = THREE.RepeatWrapping;
 noiseTextureMap.wrapT = THREE.RepeatWrapping;
 
+// Video texture setup
+const video = document.createElement("video");
+video.src =
+  "https://ik.imagekit.io/sqiqig7tz/e4d8fe34-ac0f-4485-9c56-716f218acdc1_hd.mp4";
+video.crossOrigin = "anonymous";
+video.loop = true;
+video.muted = true;
+video.play();
+
+const texture = new THREE.VideoTexture(video);
+
 // Scene setup
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x222222);
@@ -34,7 +45,7 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000,
 );
-camera.position.z = 10;
+camera.position.z = 2;
 // const frustumSize = 1;
 // const aspect = sizes.width / sizes.height;
 // const camera = new THREE.OrthographicCamera(
@@ -63,23 +74,11 @@ const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
 scene.add(ambientLight);
 
 //Geometry and Material
-const geometry = new THREE.CylinderGeometry(
-  2,
-  2.4,
-  5,
-  52,
-  52,
-  true,
-  0,
-  Math.PI * 2,
-);
+const geometry = new THREE.PlaneGeometry(1.5, 2, 512, 512);
 const material = new THREE.ShaderMaterial({
   vertexShader,
   fragmentShader,
   side: THREE.DoubleSide,
-  transparent: true,
-  blending: THREE.AdditiveBlending,
-  depthWrite: false,
   uniforms: {
     uTime: new THREE.Uniform(0),
     uResolution: new THREE.Uniform(
@@ -88,7 +87,7 @@ const material = new THREE.ShaderMaterial({
         sizes.height * sizes.pixelRatio,
       ),
     ),
-    uNoiseTexture: new THREE.Uniform(noiseTextureMap),
+    uTexture: new THREE.Uniform(texture),
   },
   // wireframe: true,
 });
