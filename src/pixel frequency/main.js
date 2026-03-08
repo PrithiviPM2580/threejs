@@ -4,19 +4,19 @@ import GUI from "lil-gui";
 import "./style.css";
 import fragmentShader from "./shader/fragment.glsl";
 import vertexShader from "./shader/vertex.glsl";
-import { noiseTexture } from "./constant.js";
 
 //Config
 
 const CONFIG = {
+  // Added a sample video URL for auto-start. Leave empty string '' to disable.
   videoUrl:
     "https://ik.imagekit.io/sqiqig7tz/e4d8fe34-ac0f-4485-9c56-716f218acdc1_hd.mp4",
   layers: 8,
   strength: 0.225,
   softness: 1,
-  autoRotate: true,
+  autoRotate: false,
   rotateSpeed: 1.0,
-  bitrate: 25000000,
+  bitrate: 25000000, // 25 Mbps
 };
 
 //Variables
@@ -72,7 +72,7 @@ function init() {
       uLayers: new THREE.Uniform(CONFIG.layers),
       uSoftness: new THREE.Uniform(CONFIG.softness),
     },
-    sides: THREE.DoubleSide,
+    side: THREE.DoubleSide,
   });
 
   mesh = new THREE.Mesh(geometry, material);
@@ -306,7 +306,7 @@ function setupGUI() {
     (v) => (material.uniforms.uLayers.value = v),
   );
   ef.add(CONFIG, "strength", -2, 0.3).onChange(
-    (v) => (material.uniforms.uDisplacementStrength.value = v),
+    (v) => (material.uniforms.uDisplacement.value = v),
   );
   ef.add(CONFIG, "softness", 0, 1).onChange(
     (v) => (material.uniforms.uSoftness.value = v),
@@ -323,8 +323,8 @@ function setupGUI() {
   const io = gui.addFolder("Export");
 
   // URL Input Section
-  io.add(CONFIG, "videoURL").name("Video URL");
-  io.add({ load: () => loadVideoFromURL(CONFIG.videoURL) }, "load").name(
+  io.add(CONFIG, "videoUrl").name("Video URL");
+  io.add({ load: () => loadVideoFromUrl(CONFIG.videoUrl) }, "load").name(
     "▶ Load URL",
   );
 
