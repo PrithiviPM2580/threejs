@@ -1,7 +1,5 @@
 import * as THREE from "three";
 import "./style.css";
-import fragmentShader from "./shader/fragment.glsl";
-import vertexShader from "./shader/vertex.glsl";
 
 const preferReduceMotion = window.matchMedia(
   "(prefers-reduced-motion: reduce)",
@@ -68,8 +66,122 @@ for (let section = 0; section < totalSections; section++) {
   });
 }
 
+camera.position.z = 10;
+camera.position.y = 0;
+
+let scrollTarget = 0;
+let scrollCurrent = 0;
+const maxScroll = (totalSections - 1) * sectionHeight;
+const baseDamping = 0.08;
+
+window.addEventListener(
+  "wheel",
+  (event) => {
+    event.preventDefault();
+    scrollTarget += event.deltaY * 0.01;
+    scrollTarget = Math.max(0, Math.min(maxScroll, scrollTarget));
+  },
+  { passive: false },
+);
+
+let lastTouchY = 0;
+
+window.addEventListener("touchstart", (event) => {
+  lastTouchY = event.touches[0].clientY;
+});
+
+window.addEventListener(
+  "touchmove",
+  (event) => {
+    event.preventDefault();
+    const touchY = event.touches[0].clientY;
+    const deltaY = lastTouchY - touchY;
+    scrollTarget += deltaY * 0.05;
+    scrollTarget = Math.max(0, Math.min(maxScroll, scrollTarget));
+    lastTouchY = touchY;
+  },
+  { passive: false },
+);
+
+window.addEventListener("keydown", (e) => {
+  const scrollSpeed = sectionHeight;
+  const fastScrollSpeed = sectionHeight * 3;
+
+  switch (e.key) {
+    case "ArrowDown":
+      e.preventDefault();
+      scrollTarget = Math.min(maxScroll, scrollTarget + scrollSpeed);
+      break;
+    case "ArrowUp":
+      e.preventDefault();
+      scrollTarget = Math.max(0, scrollTarget - scrollSpeed);
+      break;
+    case "PageDown":
+      e.preventDefault();
+      scrollTarget = Math.min(maxScroll, scrollTarget + fastScrollSpeed);
+      break;
+    case "PageUp":
+      e.preventDefault();
+      scrollTarget = Math.max(0, scrollTarget - fastScrollSpeed);
+      break;
+    case "Home":
+      e.preventDefault();
+      scrollTarget = 0;
+      break;
+    case "End":
+      e.preventDefault();
+      scrollTarget = maxScroll;
+      break;
+  }
+});
+
+const statusElement = document.getElementById("scroll-status");
+let lastAnnouncedSection = 1;
+
+function updateScreenReaderStatus() {
+  const currentSection = Math.round(scrollCurrent / sectionHeight) + 1;
+  if (currentSection !== lastAnnouncedSection) {
+    statusElement.textContent = `Viewing section ${currentSection} of ${totalSections}`;
+    lastAnnouncedSection = currentSection;
+  }
+}
+
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+});
+
 function animate() {
   requestAnimationFrame(animate);
+
+  const damping = preferReduceMotion ? 1 : baseDamping;
+  scrollCurrent += (scrollTarget - scrollCurrent) * damping;
+
+  camera.position.y = -scrollCurrent;
+
+  const progress = (scrollCurrent / maxScroll) * 100;
+  document.querySelector(".scroll-progress-fill").style.height = `${progress}%`;
+
+  objects.forEach((obj) => {
+    const distanceFromcamera = Math.abs(
+      obj.mesh.position.y - camera.position.y,
+    );
+    const scale = Math.max(0.5, 1 - distanceFromcamera / 15);
+    obj.mesh.scale.setScalar(scale);
+
+    // if (!preferReduceMotion) {
+    //   obj.mesh.rotation.z += 0.001;
+    // }
+  });
+
+  // Update light positions
+  pointLight.position.y = camera.position.y + 5;
+  pointLight2.position.y = camera.position.y - 5;
+
+  // Update screen reader status
+  updateScreenReaderStatus();
 
   renderer.render(scene, camera);
 }

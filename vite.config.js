@@ -78,6 +78,7 @@ export default defineConfig({
           __dirname,
           "src/virtual scroll/index.html",
         ),
+        vanilla: path.resolve(__dirname, "src/vanilla/index.html"),
       },
     },
   },
