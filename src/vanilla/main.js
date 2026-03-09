@@ -89,6 +89,14 @@ function animate() {
   const progress = (scrollCurrent / maxScroll) * 100;
   document.querySelector(".scroll-progress-fill").style.height = `${progress}%`;
 
+  objects.forEach((obj) => {
+    const distanceFromCamera = Math.abs(
+      obj.mesh.position.y - camera.position.y,
+    );
+    const scale = Math.max(0.5, 1 - distanceFromCamera / 15);
+    obj.mesh.scale.setScalar(scale);
+  });
+
   renderer.render(scene, camera);
 }
 
