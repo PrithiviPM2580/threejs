@@ -74,6 +74,10 @@ export default defineConfig({
           __dirname,
           "src/pixel frequency/index.html",
         ),
+        "virtual-scroll": path.resolve(
+          __dirname,
+          "src/virtual scroll/index.html",
+        ),
       },
     },
   },
