@@ -37,6 +37,10 @@ const material = new THREE.ShaderMaterial({
     uTime: new THREE.Uniform(0),
   },
   // wireframe: true,
+  transparent: true,
+  side: THREE.DoubleSide,
+  blending: THREE.AdditiveBlending,
+  depthTest: false,
 });
 
 const mesh = new THREE.Mesh(geometry, material);
@@ -48,8 +52,14 @@ window.addEventListener("resize", () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
+const clock = new THREE.Clock();
+
 function animate() {
   requestAnimationFrame(animate);
+
+  const elapsedTime = clock.getElapsedTime();
+
+  material.uniforms.uTime.value = elapsedTime;
 
   renderer.render(scene, camera);
 }
