@@ -4,7 +4,14 @@ import GUI from "lil-gui";
 import "./style.css";
 import fragmentShader from "./shader/fragment.glsl";
 import vertexShader from "./shader/vertex.glsl";
-import { BufferGeometryUtils } from "three/examples/jsm/Addons.js";
+import {
+  BufferGeometryUtils,
+  EffectComposer,
+  RenderPass,
+  UnrealBloomPass,
+  ShaderPass,
+  FXAAShader,
+} from "three/examples/jsm/Addons.js";
 
 // GUI setup
 const gui = new GUI();
@@ -191,32 +198,143 @@ function createSpirals() {
 
 createSpirals();
 
-// Handle window resize
-window.addEventListener("resize", () => {
-  sizes.width = window.innerWidth;
-  sizes.height = window.innerHeight;
-  sizes.pixelRatio = Math.min(window.devicePixelRatio, 2);
-  camera.aspect = sizes.width / sizes.height;
-  material.uniforms.uResolution.value.set(
-    sizes.width * sizes.pixelRatio,
-    sizes.height * sizes.pixelRatio,
-  );
-  camera.updateProjectionMatrix();
-  renderer.setSize(sizes.width, sizes.height);
-  renderer.setPixelRatio(sizes.pixelRatio);
-});
+const renderScene = new RenderPass(scene, camera);
 
+// 1. Bloom Pass
+const bloomPass = new UnrealBloomPass(
+  new THREE.Vector2(window.innerWidth, window.innerHeight),
+  1.5,
+  0.4,
+  0.85,
+);
+bloomPass.threshold = params.bloomThreshold;
+bloomPass.strength = params.bloomStrength;
+bloomPass.radius = params.bloomRadius;
+
+// 2. FXAA Pass (Fast Approximate Anti-Aliasing)
+const fxaaPass = new ShaderPass(FXAAShader);
+const pixelRatio = renderer.getPixelRatio();
+// Set resolution for FXAA
+fxaaPass.uniforms["resolution"].value.set(
+  1 / (window.innerWidth * pixelRatio),
+  1 / (window.innerHeight * pixelRatio),
+);
+
+const composer = new EffectComposer(renderer);
+composer.setPixelRatio(pixelRatio); // Important for crisp rendering on high DPI
+composer.addPass(renderScene);
+composer.addPass(bloomPass);
+composer.addPass(fxaaPass); // FXAA must be the last pass
+
+const fGeom = gui.addFolder("Geometry");
+fGeom
+  .add(params, "tubeRadius", 0.001, 0.05)
+  .name("Thickness")
+  .onFinishChange(createSpirals);
+fGeom
+  .add(params, "rotateX", -Math.PI, Math.PI)
+  .name("Rotate X")
+  .onChange((v) => {
+    if (mesh) mesh.rotation.x = v;
+  });
+fGeom
+  .add(params, "rotateY", -Math.PI, Math.PI)
+  .name("Rotate Y")
+  .onChange((v) => {
+    if (mesh) mesh.rotation.y = v;
+  });
+
+const fAnim = gui.addFolder("Animation");
+fAnim.add(params, "speed", 0.0, 0.1).name("Speed");
+fAnim
+  .add(params, "count", 10, 200)
+  .step(1)
+  .name("Count")
+  .onFinishChange(createSpirals);
+fAnim
+  .add(params, "trailLength", 0.0, 0.5)
+  .name("Trail Length")
+  .onChange((v) => {
+    if (material) material.uniforms.uTrailLength.value = v;
+  });
+fAnim
+  .add(params, "waveAmplitude", 0.0, 2.0)
+  .name("Wave Motion")
+  .onChange((v) => {
+    if (material) material.uniforms.uWaveAmplitude.value = v;
+  });
+
+const fColors = gui.addFolder("Colors");
+const updateColor = (uniformName, colorValue) => {
+  if (material) material.uniforms[uniformName].value.set(colorValue);
+};
+fColors
+  .addColor(params, "color1")
+  .name("Trail Color 1")
+  .onChange((v) => updateColor("uColor1", v));
+fColors
+  .addColor(params, "color2")
+  .name("Trail Color 2")
+  .onChange((v) => updateColor("uColor2", v));
+fColors
+  .addColor(params, "color3")
+  .name("Trail Color 3")
+  .onChange((v) => updateColor("uColor3", v));
+fColors
+  .addColor(params, "color4")
+  .name("Trail Color 4")
+  .onChange((v) => updateColor("uColor4", v));
+fColors
+  .addColor(params, "backgroundColor")
+  .name("Background")
+  .onChange((v) => {
+    const c = new THREE.Color(v);
+    scene.background = c;
+    scene.fog.color = c;
+  });
+
+const fGlow = gui.addFolder("Glow Effect");
+fGlow
+  .add(params, "bloomStrength", 0.0, 3.0)
+  .onChange((v) => (bloomPass.strength = v));
+fGlow
+  .add(params, "bloomRadius", 0.0, 1.0)
+  .onChange((v) => (bloomPass.radius = v));
+
+// --- LOOP ---
 const clock = new THREE.Clock();
 
-// Animation loop
 function animate() {
   requestAnimationFrame(animate);
 
   const elapsedTime = clock.getElapsedTime();
-  material.uniforms.uTime.value = elapsedTime;
+
+  if (material) {
+    material.uniforms.uTime.value = elapsedTime;
+    material.uniforms.uGlobalSpeed.value = params.speed;
+  }
 
   controls.update();
-  renderer.render(scene, camera);
+  composer.render();
 }
+
+// Handle Resize with FXAA update
+window.addEventListener("resize", () => {
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  const pixelRatio = renderer.getPixelRatio();
+
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
+
+  renderer.setSize(width, height);
+  composer.setSize(width, height);
+
+  // Update FXAA shader resolution uniform
+  fxaaPass.uniforms["resolution"].value.set(
+    1 / (width * pixelRatio),
+    1 / (height * pixelRatio),
+  );
+});
 
 animate();
