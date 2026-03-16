@@ -79,6 +79,10 @@ export default defineConfig({
           "src/virtual scroll/index.html",
         ),
         vanilla: path.resolve(__dirname, "src/vanilla/index.html"),
+        "spiral-trails": path.resolve(
+          __dirname,
+          "src/spiral trails/index.html",
+        ),
       },
     },
   },
