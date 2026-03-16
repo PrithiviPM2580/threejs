@@ -9,6 +9,17 @@ import vertexShader from "./shader/vertex.glsl";
 const gui = new GUI();
 
 const parameters = {};
+parameters.pixel = 1;
+
+gui
+  .add(parameters, "pixel")
+  .min(0.1)
+  .max(5)
+  .step(0.1)
+  .name("Pixel Size")
+  .onChange((value) => {
+    material.uniforms.uPixelSize.value = value;
+  });
 
 // Scene setup
 const scene = new THREE.Scene();
@@ -27,7 +38,7 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000,
 );
-camera.position.z = 8;
+camera.position.z = 16;
 // const frustumSize = 1;
 // const aspect = sizes.width / sizes.height;
 // const camera = new THREE.OrthographicCamera(
@@ -56,16 +67,17 @@ const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
 scene.add(ambientLight);
 
 //Base Geometry
-const geometry = new THREE.SphereGeometry(3, 52, 52);
+const geometry = new THREE.TorusGeometry(4, 1, 16, 100);
 const material = new THREE.ShaderMaterial({
   vertexShader: vertexShader,
   fragmentShader: fragmentShader,
   uniforms: {
     uTime: new THREE.Uniform(0),
+    uPixelSize: new THREE.Uniform(parameters.pixel),
   },
-  transparent: true,
-  blending: THREE.AdditiveBlending,
-  depthWrite: false,
+  // transparent: true,
+  // blending: THREE.AdditiveBlending,
+  // depthWrite: false,
   // wireframe: true,
 });
 
@@ -96,6 +108,7 @@ function animate() {
 
   const elapsedTime = clock.getElapsedTime();
   material.uniforms.uTime.value = elapsedTime;
+  material.uniforms.uPixelSize.value = 3.0 + Math.sin(elapsedTime) * 0.5;
 
   controls.update();
   renderer.render(scene, camera);
