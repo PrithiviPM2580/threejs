@@ -4,29 +4,11 @@ import GUI from "lil-gui";
 import "./style.css";
 import fragmentShader from "./shader/fragment.glsl";
 import vertexShader from "./shader/vertex.glsl";
-import { noiseTexture } from "./constant.js";
 
 // GUI setup
 const gui = new GUI();
 
 const parameters = {};
-
-//Texture loader
-const textureLoader = new THREE.TextureLoader();
-const noiseTextureMap = textureLoader.load(noiseTexture.noiseHu85k);
-noiseTextureMap.wrapS = THREE.RepeatWrapping;
-noiseTextureMap.wrapT = THREE.RepeatWrapping;
-
-// Video texture setup
-const video = document.createElement("video");
-video.src =
-  "https://ik.imagekit.io/sqiqig7tz/e4d8fe34-ac0f-4485-9c56-716f218acdc1_hd.mp4";
-video.crossOrigin = "anonymous";
-video.loop = true;
-video.muted = true;
-video.play();
-
-const texture = new THREE.VideoTexture(video);
 
 // Scene setup
 const scene = new THREE.Scene();
@@ -45,7 +27,7 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000,
 );
-camera.position.z = 2;
+camera.position.z = 8;
 // const frustumSize = 1;
 // const aspect = sizes.width / sizes.height;
 // const camera = new THREE.OrthographicCamera(
@@ -73,27 +55,22 @@ controls.dampingFactor = 0.05;
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
 scene.add(ambientLight);
 
-//Geometry and Material
-const geometry = new THREE.PlaneGeometry(1.5, 2, 512, 512);
+//Base Geometry
+const geometry = new THREE.SphereGeometry(3, 52, 52);
 const material = new THREE.ShaderMaterial({
-  vertexShader,
-  fragmentShader,
-  side: THREE.DoubleSide,
+  vertexShader: vertexShader,
+  fragmentShader: fragmentShader,
   uniforms: {
     uTime: new THREE.Uniform(0),
-    uResolution: new THREE.Uniform(
-      new THREE.Vector2(
-        sizes.width * sizes.pixelRatio,
-        sizes.height * sizes.pixelRatio,
-      ),
-    ),
-    uTexture: new THREE.Uniform(texture),
   },
+  transparent: true,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false,
   // wireframe: true,
 });
 
-const plane = new THREE.Mesh(geometry, material);
-scene.add(plane);
+const mesh = new THREE.Mesh(geometry, material);
+scene.add(mesh);
 
 // Handle window resize
 window.addEventListener("resize", () => {
@@ -111,6 +88,7 @@ window.addEventListener("resize", () => {
 });
 
 const clock = new THREE.Clock();
+let previousTime = 0;
 
 // Animation loop
 function animate() {
@@ -118,6 +96,7 @@ function animate() {
 
   const elapsedTime = clock.getElapsedTime();
   material.uniforms.uTime.value = elapsedTime;
+
   controls.update();
   renderer.render(scene, camera);
 }
