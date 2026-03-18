@@ -9,13 +9,15 @@ import vertexShader from "./shader/vertex.glsl";
 const gui = new GUI();
 
 // --- CONFIGURATION ---
-const params = {};
+const params = {
+  size: 5,
+  progress: 0,
+};
 
 // Scene setup
 const scene = new THREE.Scene();
 const bgColor = new THREE.Color(0x000000);
 scene.background = bgColor;
-scene.fog = new THREE.FogExp2(bgColor, 0.05);
 
 const sizes = {
   width: window.innerWidth,
@@ -25,10 +27,10 @@ const sizes = {
 
 // Camera setup
 const camera = new THREE.PerspectiveCamera(
-  45,
+  75,
   sizes.width / sizes.height,
   0.1,
-  100,
+  1000,
 );
 camera.position.z = 16;
 // const frustumSize = 1;
@@ -65,9 +67,21 @@ const geometry = new THREE.PlaneGeometry(1, 1, 1, 1);
 const material = new THREE.ShaderMaterial({
   vertexShader,
   fragmentShader,
+  uniforms: {
+    uTime: new THREE.Uniform(0),
+    uSize: new THREE.Uniform(params.size),
+    uProgress: new THREE.Uniform(params.progress),
+  },
 });
 const points = new THREE.Points(geometry, material);
 scene.add(points);
+
+gui.add(params, "size", 0, 10).onChange((value) => {
+  material.uniforms.uSize.value = value;
+});
+gui.add(params, "progress", 0, 1).onChange((value) => {
+  material.uniforms.uProgress.value = value;
+});
 
 // --- LOOP ---
 const clock = new THREE.Clock();
