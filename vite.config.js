@@ -83,6 +83,10 @@ export default defineConfig({
           __dirname,
           "src/spiral trails/index.html",
         ),
+        "scroll-particles": path.resolve(
+          __dirname,
+          "src/scroll particles/index.html",
+        ),
       },
     },
   },
