@@ -13,8 +13,9 @@ const gui = new GUI();
 
 // --- CONFIGURATION ---
 const params = {
-  size: 1000,
+  size: 3000,
   progress: 0,
+  move: 0,
 };
 
 // Texture loading
@@ -60,11 +61,15 @@ renderer.setPixelRatio(sizes.pixelRatio);
 // renderer.toneMapping = THREE.ReinhardToneMapping;
 document.body.appendChild(renderer.domElement);
 
+//Raycaster setup
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
 // Orbit Controls
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.autoRotate = false;
-controls.enablePan = true;
+// const controls = new OrbitControls(camera, renderer.domElement);
+// controls.enableDamping = true;
+// controls.autoRotate = false;
+// controls.enablePan = true;
 
 // Lighting
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
@@ -75,18 +80,24 @@ const geometry = new THREE.BufferGeometry();
 const count = 512 * 512;
 const positions = new THREE.BufferAttribute(new Float32Array(count * 3), 3);
 const coordinates = new THREE.BufferAttribute(new Float32Array(count * 3), 3);
+const speeds = new THREE.BufferAttribute(new Float32Array(count), 1);
+const offsets = new THREE.BufferAttribute(new Float32Array(count), 1);
 let index = 0;
 for (let i = 0; i < 512; i++) {
   let posX = i - 256;
   for (let j = 0; j < 512; j++) {
     positions.setXYZ(index, posX * 2, (j - 256) * 2, 0);
     coordinates.setXYZ(index, i, j, 0);
+    speeds.setX(index, rand(-1000, 1000));
+    offsets.setX(index, rand(0.4, 1));
     index++;
   }
 }
 
 geometry.setAttribute("position", positions);
 geometry.setAttribute("aCoordinates", coordinates);
+geometry.setAttribute("aSpeed", speeds);
+geometry.setAttribute("aOffset", offsets);
 const material = new THREE.ShaderMaterial({
   vertexShader,
   fragmentShader,
@@ -98,6 +109,7 @@ const material = new THREE.ShaderMaterial({
     uTexture1: new THREE.Uniform(textures[0]),
     uTexture2: new THREE.Uniform(textures[1]),
     uMaskTexture: new THREE.Uniform(maskTexture),
+    uMove: new THREE.Uniform(params.move),
   },
   side: THREE.DoubleSide,
   transparent: true,
@@ -113,6 +125,9 @@ gui.add(params, "size", 0, 10000).onChange((value) => {
 gui.add(params, "progress", 0, 1).onChange((value) => {
   material.uniforms.uProgress.value = value;
 });
+gui.add(params, "move", 0, 1000).onChange((value) => {
+  material.uniforms.uMove.value = value;
+});
 
 // --- LOOP ---
 const clock = new THREE.Clock();
@@ -122,8 +137,9 @@ function animate() {
 
   const elapsedTime = clock.getElapsedTime();
   material.uniforms.uTime.value = elapsedTime;
+  material.uniforms.uMove.value = params.move;
 
-  controls.update();
+  // controls.update();
   renderer.render(scene, camera);
 }
 
@@ -140,5 +156,22 @@ window.addEventListener("resize", () => {
   renderer.setPixelRatio(pixelRatio);
   material.uniforms.uPixelRatio.value = pixelRatio;
 });
+
+window.addEventListener("wheel", (event) => {
+  params.move += event.deltaY / 1000;
+});
+
+window.addEventListener(
+  "mousemove",
+  (event) => {
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  },
+  false,
+);
+
+function rand(a, b) {
+  return Math.random() * (b - a) + a;
+}
 
 animate();
