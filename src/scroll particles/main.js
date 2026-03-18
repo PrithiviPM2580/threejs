@@ -110,6 +110,7 @@ const material = new THREE.ShaderMaterial({
     uTexture2: new THREE.Uniform(textures[1]),
     uMaskTexture: new THREE.Uniform(maskTexture),
     uMove: new THREE.Uniform(params.move),
+    uMouse: new THREE.Uniform(mouse),
   },
   side: THREE.DoubleSide,
   transparent: true,
@@ -130,6 +131,28 @@ gui.add(params, "move", 0, 1000).onChange((value) => {
 });
 
 // --- LOOP ---
+
+window.addEventListener("wheel", (event) => {
+  params.move += event.deltaY / 1000;
+});
+
+const test = new THREE.Mesh(
+  new THREE.PlaneGeometry(2000, 2000),
+  new THREE.MeshBasicMaterial(),
+);
+
+window.addEventListener(
+  "mousemove",
+  (event) => {
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects([test]);
+  },
+  false,
+);
+
 const clock = new THREE.Clock();
 
 function animate() {
@@ -138,6 +161,7 @@ function animate() {
   const elapsedTime = clock.getElapsedTime();
   material.uniforms.uTime.value = elapsedTime;
   material.uniforms.uMove.value = params.move;
+  material.uniforms.uMouse.value = mouse;
 
   // controls.update();
   renderer.render(scene, camera);
@@ -156,19 +180,6 @@ window.addEventListener("resize", () => {
   renderer.setPixelRatio(pixelRatio);
   material.uniforms.uPixelRatio.value = pixelRatio;
 });
-
-window.addEventListener("wheel", (event) => {
-  params.move += event.deltaY / 1000;
-});
-
-window.addEventListener(
-  "mousemove",
-  (event) => {
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-  },
-  false,
-);
 
 function rand(a, b) {
   return Math.random() * (b - a) + a;
