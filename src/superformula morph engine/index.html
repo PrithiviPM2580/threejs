@@ -6,6 +6,74 @@
     <title>Superformula Morph Engine</title>
   </head>
   <body>
-    <script src="./main.js"></script>
+    <div id="info" class="glass-panel">
+      <div class="scan-line"></div>
+      <div class="label">System Status</div>
+      <h3>Online / Rendering</h3>
+      <div class="start-row">
+        <span class="param-label">Geometry</span>
+        <span style="color: #fff; font-width: 500">Superformula</span>
+      </div>
+      <div class="stat-row">
+        <span class="param-label">Factor M</span>
+        <span class="param-value" id="val-m">--</span>
+      </div>
+      <div class="stat-row">
+        <span class="param-label">Factor N1</span>
+        <span class="param-value" id="val-n1">--</span>
+      </div>
+      <div class="stat-row">
+        <span class="param-label">Factor N2</span>
+        <span class="param-value" id="val-n2">--</span>
+      </div>
+      <div class="stat-row">
+        <span class="param-label">Factor N3</span>
+        <span class="param-value" id="val-n3">--</span>
+      </div>
+      <div class="stat-row">
+        <span class="param-label">Nodes</span>
+        <span class="param-value">300k</span>
+      </div>
+      <div id="theme-section">
+        <div class="label">Current Sequence</div>
+        <span id="current-theme-name">Initializing...</span>
+      </div>
+    </div>
+    <div id="music-player" class="glass-panel">
+      <div class="music-title">Audio Interface</div>
+      <div class="controls">
+        <button class="control-btn" id="btn-play" title="Play">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+        </button>
+        <button
+          class="control-btn"
+          id="btn-pause"
+          title="Pause"
+          style="display: none"
+        >
+          <svg viewBox="0 0 24 24">
+            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+          </svg>
+        </button>
+        <button class="control-btn" id="btn-stop" title="Stop">
+          <svg viewBox="0 0 24 24"><path d="M6 6h12v12H6z" /></svg>
+        </button>
+      </div>
+      <div class="equalizer" id="eq-viz">
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+      </div>
+      <audio id="bg-music" loop>
+        <source
+          src="https://static.wixstatic.com/mp3/3d9313_4f8469dbff9547a4836a026c021299c1.mp3"
+          type="audio/mp3"
+        />
+      </audio>
+    </div>
+
+    <div id="canvas-container"></div>
+    <script type="module" src="./main.js"></script>
   </body>
 </html>
