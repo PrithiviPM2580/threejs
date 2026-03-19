@@ -7,6 +7,7 @@ import vertexShader from "./shader/vertex.glsl";
 import t1 from "/pngs/car.png";
 import t2 from "/pngs/heart.png";
 import mask from "/pngs/mask.jpg";
+import gsap from "gsap";
 
 // GUI setup
 const gui = new GUI();
@@ -64,6 +65,7 @@ document.body.appendChild(renderer.domElement);
 //Raycaster setup
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
+const point = new THREE.Vector2();
 
 // Orbit Controls
 // const controls = new OrbitControls(camera, renderer.domElement);
@@ -82,6 +84,9 @@ const positions = new THREE.BufferAttribute(new Float32Array(count * 3), 3);
 const coordinates = new THREE.BufferAttribute(new Float32Array(count * 3), 3);
 const speeds = new THREE.BufferAttribute(new Float32Array(count), 1);
 const offsets = new THREE.BufferAttribute(new Float32Array(count), 1);
+const direction = new THREE.BufferAttribute(new Float32Array(count), 1);
+const press = new THREE.BufferAttribute(new Float32Array(count), 1);
+
 let index = 0;
 for (let i = 0; i < 512; i++) {
   let posX = i - 256;
@@ -90,6 +95,8 @@ for (let i = 0; i < 512; i++) {
     coordinates.setXYZ(index, i, j, 0);
     speeds.setX(index, rand(-1000, 1000));
     offsets.setX(index, rand(0.4, 1));
+    direction.setX(index, Math.random() > 0.5 ? 1 : -1);
+    press.setX(index, rand(0.4, 1));
     index++;
   }
 }
@@ -98,6 +105,8 @@ geometry.setAttribute("position", positions);
 geometry.setAttribute("aCoordinates", coordinates);
 geometry.setAttribute("aSpeed", speeds);
 geometry.setAttribute("aOffset", offsets);
+geometry.setAttribute("aDirection", direction);
+geometry.setAttribute("aPress", press);
 const material = new THREE.ShaderMaterial({
   vertexShader,
   fragmentShader,
@@ -111,6 +120,7 @@ const material = new THREE.ShaderMaterial({
     uMaskTexture: new THREE.Uniform(maskTexture),
     uMove: new THREE.Uniform(params.move),
     uMouse: new THREE.Uniform(mouse),
+    uMousePressed: new THREE.Uniform(0),
   },
   side: THREE.DoubleSide,
   transparent: true,
@@ -133,7 +143,7 @@ gui.add(params, "move", 0, 1000).onChange((value) => {
 // --- LOOP ---
 
 window.addEventListener("wheel", (event) => {
-  params.move += event.deltaY / 1000;
+  params.move += event.deltaY / 4000;
 });
 
 const test = new THREE.Mesh(
@@ -149,9 +159,28 @@ window.addEventListener(
 
     raycaster.setFromCamera(mouse, camera);
     const intersects = raycaster.intersectObjects([test]);
+
+    point.x = intersects[0].point.x;
+    point.y = intersects[0].point.y;
   },
   false,
 );
+
+window.addEventListener("mousedown", () => {
+  gsap.to(material.uniforms.uMousePressed, {
+    duration: 0.5,
+    value: 1,
+    ease: "elastic.out(1, 0.3)",
+  });
+});
+
+window.addEventListener("mouseup", () => {
+  gsap.to(material.uniforms.uMousePressed, {
+    duration: 1,
+    value: 0,
+    ease: "elastic.out(1, 0.3)",
+  });
+});
 
 const clock = new THREE.Clock();
 
@@ -161,7 +190,7 @@ function animate() {
   const elapsedTime = clock.getElapsedTime();
   material.uniforms.uTime.value = elapsedTime;
   material.uniforms.uMove.value = params.move;
-  material.uniforms.uMouse.value = mouse;
+  material.uniforms.uMouse.value = point;
 
   // controls.update();
   renderer.render(scene, camera);
