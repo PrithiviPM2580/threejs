@@ -87,6 +87,10 @@ export default defineConfig({
           __dirname,
           "src/scroll particles/index.html",
         ),
+        "superformula-morph-engine": path.resolve(
+          __dirname,
+          "src/superformula morph engine/index.html",
+        ),
       },
     },
   },
