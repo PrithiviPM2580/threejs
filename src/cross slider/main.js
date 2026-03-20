@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import GUI from "lil-gui";
+import gsap from "gsap";
 import "./style.css";
 import fragmentShader from "./shader/fragment.glsl";
 import vertexShader from "./shader/vertex.glsl";
@@ -9,6 +10,7 @@ import vertexShader from "./shader/vertex.glsl";
 const gui = new GUI();
 
 const parameters = {};
+parameters.progress = 0;
 
 // Scene setup
 const scene = new THREE.Scene();
@@ -75,13 +77,27 @@ const material = new THREE.ShaderMaterial({
     },
     uTexture1: new THREE.Uniform(texture1),
     uTexture2: new THREE.Uniform(texture2),
-    uProgress: new THREE.Uniform(0),
+    uProgress: new THREE.Uniform(parameters.progress),
     uPixels: new THREE.Uniform(new THREE.Vector2(sizes.width, sizes.height)),
+    uUvRate1: new THREE.Uniform(new THREE.Vector2(1, 1)),
+    uAccel: new THREE.Uniform(new THREE.Vector2(0.5, 2)),
   },
 });
 
 const mesh = new THREE.Mesh(geometry, material);
 scene.add(mesh);
+
+const body = document.querySelector("body");
+body.addEventListener("click", () => {
+  gsap.to(parameters, {
+    progress: 1,
+    duration: 2,
+    ease: "power2.inOut",
+    onUpdate: () => {
+      material.uniforms.uProgress.value = parameters.progress;
+    },
+  });
+});
 
 // Handle window resize
 window.addEventListener("resize", () => {
@@ -89,6 +105,7 @@ window.addEventListener("resize", () => {
   sizes.height = window.innerHeight;
   sizes.pixelRatio = Math.min(window.devicePixelRatio, 2);
   camera.aspect = sizes.width / sizes.height;
+  material.uniforms.uUvRate1.value.y = sizes.height / sizes.width;
   material.uniforms.uResolution.value.set(
     sizes.width * sizes.pixelRatio,
     sizes.height * sizes.pixelRatio,
@@ -98,10 +115,12 @@ window.addEventListener("resize", () => {
   let dist = camera.position.z - mesh.position.z;
   let height = 1;
   camera.fov = 2 * (180 / Math.PI) * Math.atan(height / (2 * dist));
-  if (sizes.width > 1) {
-    mesh.scale.x = mesh.scale.y = 1.05 * (sizes.width / sizes.height);
-  }
+  mesh.scale.x = sizes.width / sizes.height;
   camera.updateProjectionMatrix();
+});
+
+gui.add(parameters, "progress", 0, 1, 0.01).onChange((value) => {
+  material.uniforms.uProgress.value = value;
 });
 
 const clock = new THREE.Clock();
