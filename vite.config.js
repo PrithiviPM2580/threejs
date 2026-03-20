@@ -91,6 +91,7 @@ export default defineConfig({
           __dirname,
           "src/superformula morph engine/index.html",
         ),
+        "cross-slider": path.resolve(__dirname, "src/cross slider/index.html"),
       },
     },
   },
