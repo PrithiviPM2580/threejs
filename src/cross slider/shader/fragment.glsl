@@ -9,6 +9,7 @@ uniform vec2 uAccel;
 uniform float uTime;
 
 varying vec2 vUv;
+
 varying vec2 vUv1;
 
 vec2 mirrored(vec2 v){
@@ -22,17 +23,18 @@ float tri(float p){
 
 void main() {
     vec2 uv= gl_FragCoord.xy / uPixels.xy;
+    float p = fract(uProgress);
 
-    float delayValue= uProgress*7. - uv.y*2. + uv.x - 2.0;
+    float delayValue= p*7. - uv.y*2. + uv.x - 2.0;
 
     delayValue= clamp(delayValue, 0., 1.);
 
-    vec2 translateValue= uProgress + delayValue * uAccel;
+    vec2 translateValue= p + delayValue * uAccel;
     vec2 translateValue1= vec2(-0.5,1.) * translateValue;
     vec2 translateValue2= vec2(-0.5,1.) * (translateValue - 1. - uAccel);
 
     vec2 w= sin(sin(uTime) * vec2(0,0.3) + vUv.yx * vec2(0,4.0)) * vec2(0,0.5);
-    vec2 xy= w * (tri(uProgress) * 0.5 + tri(delayValue) * 0.5);
+    vec2 xy= w * (tri(p) * 0.5 + tri(delayValue) * 0.5);
 
     vec2 uv1= vUv1 + translateValue1 +xy;
     vec2 uv2= vUv1 + translateValue2 +xy;
