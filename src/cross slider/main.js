@@ -20,6 +20,11 @@ const sizes = {
   pixelRatio: Math.min(window.devicePixelRatio, 2),
 };
 
+// Texture loader
+const textureLoader = new THREE.TextureLoader();
+const texture1 = textureLoader.load("/images/img1.png");
+const texture2 = textureLoader.load("/images/img2.png");
+
 // Camera setup
 const camera = new THREE.PerspectiveCamera(
   70,
@@ -56,7 +61,7 @@ const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
 scene.add(ambientLight);
 
 //Base Geometry
-const geometry = new THREE.PlaneGeometry(1, 1, 64, 64);
+const geometry = new THREE.PlaneGeometry(1, 1, 1, 1);
 const material = new THREE.ShaderMaterial({
   vertexShader,
   fragmentShader,
@@ -68,6 +73,10 @@ const material = new THREE.ShaderMaterial({
         sizes.height * sizes.pixelRatio,
       ),
     },
+    uTexture1: new THREE.Uniform(texture1),
+    uTexture2: new THREE.Uniform(texture2),
+    uProgress: new THREE.Uniform(0),
+    uPixels: new THREE.Uniform(new THREE.Vector2(sizes.width, sizes.height)),
   },
 });
 
@@ -84,9 +93,15 @@ window.addEventListener("resize", () => {
     sizes.width * sizes.pixelRatio,
     sizes.height * sizes.pixelRatio,
   );
-  camera.updateProjectionMatrix();
   renderer.setSize(sizes.width, sizes.height);
   renderer.setPixelRatio(sizes.pixelRatio);
+  let dist = camera.position.z - mesh.position.z;
+  let height = 1;
+  camera.fov = 2 * (180 / Math.PI) * Math.atan(height / (2 * dist));
+  if (sizes.width > 1) {
+    mesh.scale.x = mesh.scale.y = 1.05 * (sizes.width / sizes.height);
+  }
+  camera.updateProjectionMatrix();
 });
 
 const clock = new THREE.Clock();

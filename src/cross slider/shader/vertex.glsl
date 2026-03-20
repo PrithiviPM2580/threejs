@@ -1,5 +1,6 @@
 varying vec3 vNormal;
 varying vec3 vPosition;
+varying vec2 vUv;
 
 void main() {
 
@@ -9,4 +10,6 @@ void main() {
    gl_Position = projectedPosition;
 
    vPosition= position;
+   vNormal= normal;
+   vUv= uv;
 }
