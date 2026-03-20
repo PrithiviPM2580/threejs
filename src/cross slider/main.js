@@ -123,6 +123,11 @@ gui.add(parameters, "progress", 0, 1, 0.01).onChange((value) => {
   material.uniforms.uProgress.value = value;
 });
 
+let speed = 0;
+document.addEventListener("wheel", (event) => {
+  speed += event.deltaY;
+});
+
 const clock = new THREE.Clock();
 
 // Animation loop
