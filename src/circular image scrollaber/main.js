@@ -1,9 +1,11 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { extendMSDFMaterial, TextGeometry } from "three-msdf-text";
 import GUI from "lil-gui";
 import "./style.css";
 import fragmentShader from "./shader/fragment.glsl";
 import vertexShader from "./shader/vertex.glsl";
+import { FontLoader } from "three/examples/jsm/Addons.js";
 
 // GUI setup
 const gui = new GUI();
@@ -56,21 +58,29 @@ const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
 scene.add(ambientLight);
 
 //Base Geometry
-const geometry = new THREE.TorusGeometry(4, 1, 16, 100);
-const material = new THREE.ShaderMaterial({
-  vertexShader: vertexShader,
-  fragmentShader: fragmentShader,
-  uniforms: {
-    uTime: new THREE.Uniform(0),
-  },
-  // transparent: true,
-  // blending: THREE.AdditiveBlending,
-  // depthWrite: false,
-  // wireframe: true,
-});
+(async () => {
+  const textureLoader = new THREE.TextureLoader();
+  const fontLoader = new FontLoader();
 
-const mesh = new THREE.Mesh(geometry, material);
-scene.add(mesh);
+  const atlas = textureLoader.loadAsync("./font/font.png");
+  const font = fontLoader.loadAsync("./font/font.json");
+
+  const geometry = new TextGeometry({
+    font,
+    text: "Hello world",
+  });
+
+  const material = extendMSDFMaterial(
+    new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      transparent: true,
+    }),
+    { atlas },
+  );
+
+  const mesh = new THREE.Mesh(geometry, material);
+  scene.add(mesh);
+})();
 
 // Handle window resize
 window.addEventListener("resize", () => {

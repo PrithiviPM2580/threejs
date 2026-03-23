@@ -16,6 +16,7 @@
     "lil-gui": "^0.21.0",
     "nice-color-palettes": "^4.0.0",
     "three": "^0.182.0",
+    "three-msdf-text": "^1.0.0",
     "tweakpane": "^4.0.5",
     "vite-plugin-glsl": "^1.5.5"
   }
