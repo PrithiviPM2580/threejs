@@ -92,6 +92,10 @@ export default defineConfig({
           "src/superformula morph engine/index.html",
         ),
         "cross-slider": path.resolve(__dirname, "src/cross slider/index.html"),
+        "circular-image-scrollaber": path.resolve(
+          __dirname,
+          "src/circular image scrollaber/index.html",
+        ),
       },
     },
   },
