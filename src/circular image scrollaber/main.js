@@ -5,6 +5,8 @@ import GUI from "lil-gui";
 import "./style.css";
 import fragmentShader from "./shader/fragment.glsl";
 import vertexShader from "./shader/vertex.glsl";
+import textVertexShader from "./shader/text/vertex.glsl";
+import textFragmentShader from "./shader/text/fragment.glsl";
 import VirtualScroll from "virtual-scroll";
 
 // GUI setup
@@ -25,6 +27,9 @@ const TEXT = [
   "Tranquility",
 ];
 let position = 0;
+let targetPosition = 0;
+let speed = 0;
+let targetSpeed = 0;
 
 // Scene setup
 const scene = new THREE.Scene();
@@ -89,9 +94,12 @@ scene.add(group);
     ]);
 
     textMaterial = extendMSDFMaterial(
-      new THREE.MeshBasicMaterial({
-        color: 0xff0000,
-        transparent: true,
+      new THREE.ShaderMaterial({
+        vertexShader: textVertexShader,
+        fragmentShader: textFragmentShader,
+        uniforms: {
+          uSpeed: new THREE.Uniform(0),
+        },
       }),
       { atlas },
     );
@@ -138,8 +146,8 @@ window.addEventListener("resize", () => {
 
 const virtualScroll = new VirtualScroll();
 virtualScroll.on((event) => {
-  position += event.y / 2000;
-  console.log(position);
+  targetPosition += event.deltaY / 900;
+  speed = event.deltaY / 1200;
 });
 
 const clock = new THREE.Clock();
@@ -148,8 +156,19 @@ const clock = new THREE.Clock();
 function animate() {
   requestAnimationFrame(animate);
 
-  const elapsedTime = clock.getElapsedTime();
+  const deltaTime = clock.getDelta();
+  const positionDamping = 1 - Math.exp(-12 * deltaTime);
+  const speedDamping = 1 - Math.exp(-10 * deltaTime);
+
+  position = THREE.MathUtils.lerp(position, targetPosition, positionDamping);
+  speed *= 0.9;
+  speed = THREE.MathUtils.lerp(speed, targetSpeed, speedDamping);
+
   group.position.y = -position;
+
+  if (textMaterial) {
+    textMaterial.uniforms.uSpeed.value = speed;
+  }
 
   // controls.update();
   renderer.render(scene, camera);
