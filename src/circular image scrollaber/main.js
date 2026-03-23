@@ -5,16 +5,30 @@ import GUI from "lil-gui";
 import "./style.css";
 import fragmentShader from "./shader/fragment.glsl";
 import vertexShader from "./shader/vertex.glsl";
-import { FontLoader } from "three/examples/jsm/Addons.js";
+import VirtualScroll from "virtual-scroll";
 
 // GUI setup
 const gui = new GUI();
 
 const parameters = {};
 
+const TEXT = [
+  "Serenity",
+  "Ethereal",
+  "Luminous",
+  "Ephemeral",
+  "Euphoria",
+  "Harmony",
+  "Radiance",
+  "Bliss",
+  "Enchanted",
+  "Tranquility",
+];
+let position = 0;
+
 // Scene setup
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x222222);
+scene.background = new THREE.Color(0xdeefd6);
 
 const sizes = {
   width: window.innerWidth,
@@ -49,37 +63,58 @@ renderer.setPixelRatio(sizes.pixelRatio);
 document.body.appendChild(renderer.domElement);
 
 // Orbit Controls
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.dampingFactor = 0.05;
+// const controls = new OrbitControls(camera, renderer.domElement);
+// controls.enableDamping = true;
+// controls.dampingFactor = 0.05;
 
 // Lighting
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
 scene.add(ambientLight);
 
+let textMaterial = null;
+
+const group = new THREE.Group();
+scene.add(group);
+
 //Base Geometry
 (async () => {
   const textureLoader = new THREE.TextureLoader();
-  const fontLoader = new FontLoader();
+  const fileLoader = new THREE.FileLoader();
+  fileLoader.setResponseType("json");
 
-  const atlas = textureLoader.loadAsync("./font/font.png");
-  const font = fontLoader.loadAsync("./font/font.json");
+  try {
+    const [atlas, font] = await Promise.all([
+      textureLoader.loadAsync("/fonts/limelight/limelight.png"),
+      fileLoader.loadAsync("/fonts/limelight/limelight.json"),
+    ]);
 
-  const geometry = new TextGeometry({
-    font,
-    text: "Hello world",
-  });
+    textMaterial = extendMSDFMaterial(
+      new THREE.MeshBasicMaterial({
+        color: 0xff0000,
+        transparent: true,
+      }),
+      { atlas },
+    );
 
-  const material = extendMSDFMaterial(
-    new THREE.MeshBasicMaterial({
-      color: 0xffffff,
-      transparent: true,
-    }),
-    { atlas },
-  );
+    const textSize = 1.8;
+    const lineGap = textSize * 1.1;
+    const totalHeight = (TEXT.length - 1) * lineGap;
 
-  const mesh = new THREE.Mesh(geometry, material);
-  scene.add(mesh);
+    TEXT.forEach((text, index) => {
+      const geometry = new TextGeometry({
+        font,
+        text: text.toUpperCase(),
+        size: textSize,
+      });
+      geometry.center();
+
+      const mesh = new THREE.Mesh(geometry, textMaterial);
+      mesh.position.y = totalHeight * 0.5 - index * lineGap;
+      group.add(mesh);
+    });
+  } catch (error) {
+    console.error("Failed to load MSDF text assets:", error);
+  }
 })();
 
 // Handle window resize
@@ -88,13 +123,23 @@ window.addEventListener("resize", () => {
   sizes.height = window.innerHeight;
   sizes.pixelRatio = Math.min(window.devicePixelRatio, 2);
   camera.aspect = sizes.width / sizes.height;
-  material.uniforms.uResolution.value.set(
-    sizes.width * sizes.pixelRatio,
-    sizes.height * sizes.pixelRatio,
-  );
+
+  if (textMaterial?.uniforms?.uResolution?.value) {
+    textMaterial.uniforms.uResolution.value.set(
+      sizes.width * sizes.pixelRatio,
+      sizes.height * sizes.pixelRatio,
+    );
+  }
+
   camera.updateProjectionMatrix();
   renderer.setSize(sizes.width, sizes.height);
   renderer.setPixelRatio(sizes.pixelRatio);
+});
+
+const virtualScroll = new VirtualScroll();
+virtualScroll.on((event) => {
+  position += event.y / 2000;
+  console.log(position);
 });
 
 const clock = new THREE.Clock();
@@ -104,9 +149,9 @@ function animate() {
   requestAnimationFrame(animate);
 
   const elapsedTime = clock.getElapsedTime();
-  material.uniforms.uTime.value = elapsedTime;
+  group.position.y = -position;
 
-  controls.update();
+  // controls.update();
   renderer.render(scene, camera);
 }
 
