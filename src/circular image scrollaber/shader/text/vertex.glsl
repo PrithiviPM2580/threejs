@@ -27,7 +27,8 @@ void main() {
    #include <uv_vertex>
 
    vec3 newPos= position;
-   newPos= rotate(newPos, vec3(0.0,0.0,1.0),uSpeed);
+   float xx= max(position.x, 0.0);
+   newPos= rotate(newPos, vec3(0.0,0.0,1.0),0.1 * uSpeed * xx);
 
    vec4 modelPosition = modelMatrix * vec4(newPos, 1.0);
    vec4 viewPosition = viewMatrix * modelPosition;

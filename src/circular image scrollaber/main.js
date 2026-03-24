@@ -33,7 +33,7 @@ let targetSpeed = 0;
 
 // Scene setup
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xdeefd6);
+scene.background = new THREE.Color(0xe2d3b7);
 
 const sizes = {
   width: window.innerWidth,
@@ -79,7 +79,11 @@ scene.add(ambientLight);
 let textMaterial = null;
 
 const group = new THREE.Group();
+const planeOrbit = new THREE.Group();
+const planeGroup = new THREE.Group();
 scene.add(group);
+scene.add(planeOrbit);
+planeOrbit.add(planeGroup);
 
 //Base Geometry
 (async () => {
@@ -114,16 +118,45 @@ scene.add(group);
         text: text.toUpperCase(),
         size: textSize,
       });
-      geometry.center();
 
       const mesh = new THREE.Mesh(geometry, textMaterial);
       mesh.position.y = totalHeight * 0.5 - index * lineGap;
+      mesh.position.x = 0;
       group.add(mesh);
     });
   } catch (error) {
     console.error("Failed to load MSDF text assets:", error);
   }
 })();
+
+const cylinderRadius = 5;
+const planeWidth = 10;
+const planeGeometry = new THREE.PlaneGeometry(planeWidth, 6, 80, 1);
+const positionAttribute = planeGeometry.attributes.position;
+
+for (let i = 0; i < positionAttribute.count; i += 1) {
+  const x = positionAttribute.getX(i);
+  const y = positionAttribute.getY(i);
+  const theta = x / cylinderRadius;
+
+  const curvedX = Math.sin(theta) * cylinderRadius;
+  const curvedZ = Math.cos(theta) * cylinderRadius - cylinderRadius;
+
+  positionAttribute.setXYZ(i, curvedX, y, curvedZ);
+}
+
+positionAttribute.needsUpdate = true;
+planeGeometry.computeVertexNormals();
+const planeMaterial = new THREE.ShaderMaterial({
+  vertexShader,
+  fragmentShader,
+  uniforms: {
+    uTime: new THREE.Uniform(0),
+  },
+});
+
+const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+planeGroup.add(plane);
 
 // Handle window resize
 window.addEventListener("resize", () => {
@@ -150,6 +183,9 @@ virtualScroll.on((event) => {
   speed = event.deltaY / 1200;
 });
 
+// Move text to left side
+group.position.x = -8;
+
 const clock = new THREE.Clock();
 
 // Animation loop
@@ -163,8 +199,20 @@ function animate() {
   position = THREE.MathUtils.lerp(position, targetPosition, positionDamping);
   speed *= 0.9;
   speed = THREE.MathUtils.lerp(speed, targetSpeed, speedDamping);
-
   group.position.y = -position;
+
+  // Cylindrical plane moves around a circular path using an orbit pivot.
+  const orbitRadius = 5;
+  const orbitAngle = position * 0.8;
+
+  planeOrbit.position.set(0, 4, 0);
+  planeOrbit.rotation.set(0, orbitAngle, 0);
+
+  planeGroup.position.set(orbitRadius, 0, 0);
+  // Keep local rotation neutral so inherited orbit rotation makes it follow the path.
+  planeGroup.rotation.set(0, 0, 0);
+  plane.position.set(0, 0, 0);
+  plane.rotation.set(0, 0, 0);
 
   if (textMaterial) {
     textMaterial.uniforms.uSpeed.value = speed;
