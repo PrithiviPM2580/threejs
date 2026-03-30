@@ -96,6 +96,7 @@ export default defineConfig({
           __dirname,
           "src/circular image scrollaber/index.html",
         ),
+        dither: path.resolve(__dirname, "src/dither/index.html"),
       },
     },
   },
