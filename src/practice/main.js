@@ -1,29 +1,18 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { AsciiEffect, TrackballControls } from "three/examples/jsm/Addons.js";
 import GUI from "lil-gui";
 import "./style.css";
-import fragmentShader from "./shader/fragment.glsl";
-import vertexShader from "./shader/vertex.glsl";
+// import fragmentShader from "./shader/fragment.glsl";
+// import vertexShader from "./shader/vertex.glsl";
 
 // GUI setup
 const gui = new GUI();
-
-const parameters = {};
-parameters.pixel = 1;
-
-gui
-  .add(parameters, "pixel")
-  .min(0.1)
-  .max(5)
-  .step(0.1)
-  .name("Pixel Size")
-  .onChange((value) => {
-    material.uniforms.uPixelSize.value = value;
-  });
+let effect;
 
 // Scene setup
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x222222);
+scene.background = new THREE.Color(0x000000);
 
 const sizes = {
   width: window.innerWidth,
@@ -55,34 +44,34 @@ scene.add(camera);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(sizes.pixelRatio);
-document.body.appendChild(renderer.domElement);
+
+effect = new AsciiEffect(renderer, " .,:;i1tfLCG08@", { invert: false });
+effect.setSize(sizes.width, sizes.height);
+effect.domElement.style.color = "white";
+effect.domElement.style.backgroundColor = "transparent";
+effect.domElement.style.position = "fixed";
+effect.domElement.style.top = "0";
+effect.domElement.style.left = "0";
+document.body.appendChild(effect.domElement);
 
 // Orbit Controls
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.dampingFactor = 0.05;
+// const controls = new OrbitControls(camera, effect.domElement);
+// controls.enableDamping = true;
+// controls.dampingFactor = 0.05;
+const controls = new TrackballControls(camera, effect.domElement);
 
 // Lighting
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
 scene.add(ambientLight);
 
 //Base Geometry
-const geometry = new THREE.TorusGeometry(4, 1, 16, 100);
-const material = new THREE.ShaderMaterial({
-  vertexShader: vertexShader,
-  fragmentShader: fragmentShader,
-  uniforms: {
-    uTime: new THREE.Uniform(0),
-    uPixelSize: new THREE.Uniform(parameters.pixel),
-  },
-  // transparent: true,
-  // blending: THREE.AdditiveBlending,
-  // depthWrite: false,
-  // wireframe: true,
-});
+const geometry = new THREE.SphereGeometry(3, 64, 64);
+const material = new THREE.MeshPhongMaterial({ flatShading: true });
+const torusKnot = new THREE.Mesh(geometry, material);
+scene.add(torusKnot);
 
-const mesh = new THREE.Mesh(geometry, material);
-scene.add(mesh);
+const sphereCenter = new THREE.Vector3();
+const sphereEdge = new THREE.Vector3();
 
 // Handle window resize
 window.addEventListener("resize", () => {
@@ -90,13 +79,10 @@ window.addEventListener("resize", () => {
   sizes.height = window.innerHeight;
   sizes.pixelRatio = Math.min(window.devicePixelRatio, 2);
   camera.aspect = sizes.width / sizes.height;
-  material.uniforms.uResolution.value.set(
-    sizes.width * sizes.pixelRatio,
-    sizes.height * sizes.pixelRatio,
-  );
   camera.updateProjectionMatrix();
   renderer.setSize(sizes.width, sizes.height);
   renderer.setPixelRatio(sizes.pixelRatio);
+  effect.setSize(sizes.width, sizes.height);
 });
 
 const clock = new THREE.Clock();
@@ -107,11 +93,9 @@ function animate() {
   requestAnimationFrame(animate);
 
   const elapsedTime = clock.getElapsedTime();
-  material.uniforms.uTime.value = elapsedTime;
-  material.uniforms.uPixelSize.value = 3.0 + Math.sin(elapsedTime) * 0.5;
 
   controls.update();
-  renderer.render(scene, camera);
+  effect.render(scene, camera);
 }
 
 animate();
