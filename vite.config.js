@@ -97,6 +97,10 @@ export default defineConfig({
           "src/circular image scrollaber/index.html",
         ),
         dither: path.resolve(__dirname, "src/dither/index.html"),
+        "cylinder-scroller": path.resolve(
+          __dirname,
+          "src/cylinder scroller/index.html",
+        ),
       },
     },
   },
